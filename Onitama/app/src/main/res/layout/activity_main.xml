@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E4E2C1"
+    android:background="@color/beige"
     android:orientation="vertical"
     android:paddingLeft="30dp"
     android:paddingTop="150dp"
@@ -19,18 +19,18 @@
         android:fontFamily="@font/amarante"
         android:text="ONITAMA"
         android:textAlignment="center"
-        android:textColor="#575012"
+        android:textColor="@color/brown"
         android:textSize="60sp"
         android:textStyle="bold" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btnPlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="70dp"
         android:layout_marginTop="30dp"
         android:layout_marginRight="70dp"
-        android:backgroundTint="#575012"
+        android:backgroundTint="@color/brown"
         android:text="play" />
 
     <TextView
@@ -40,5 +40,6 @@
         android:layout_marginTop="100dp"
         android:text="Created By:\nAngelita Jesslyn / 220116905\nCherilyn Eugenia / 220116908\nIan Nathaneil William / 220116918"
         android:textAlignment="center"
+        android:textColor="@color/brown"
         android:textStyle="bold" />
 </LinearLayout>
