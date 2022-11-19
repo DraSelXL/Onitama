@@ -1,9 +1,341 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/beige"
+    android:orientation="vertical"
+    android:padding="30dp"
     tools:context=".GameActivity">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/ib00"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_pawn_blue" />
+
+        <ImageButton
+            android:id="@+id/ib01"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_pawn_blue" />
+
+        <ImageButton
+            android:id="@+id/ib02"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_crown_blue" />
+
+        <ImageButton
+            android:id="@+id/ib03"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_pawn_blue" />
+
+        <ImageButton
+            android:id="@+id/ib04"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_pawn_blue" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/ib10"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib11"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib12"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib13"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib14"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/ib20"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib21"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib22"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib23"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib24"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/ib30"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib31"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib32"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib33"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+
+        <ImageButton
+            android:id="@+id/ib34"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/plain_bg" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/ib40"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_pawn_red" />
+
+        <ImageButton
+            android:id="@+id/ib41"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_pawn_red" />
+
+        <ImageButton
+            android:id="@+id/ib42"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_crown_red" />
+
+        <ImageButton
+            android:id="@+id/ib43"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_pawn_red" />
+
+        <ImageButton
+            android:id="@+id/ib44"
+            android:layout_width="wrap_content"
+            android:layout_height="70dp"
+            android:layout_margin="1dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:backgroundTint="#FFFFFFFF"
+            android:padding="15dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_pawn_red" />
+    </LinearLayout>
+</LinearLayout>
