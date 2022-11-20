@@ -46,10 +46,10 @@
 
         <ImageButton
             android:id="@+id/ib00"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -57,10 +57,10 @@
 
         <ImageButton
             android:id="@+id/ib01"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -68,10 +68,10 @@
 
         <ImageButton
             android:id="@+id/ib02"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -79,10 +79,10 @@
 
         <ImageButton
             android:id="@+id/ib03"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -90,10 +90,10 @@
 
         <ImageButton
             android:id="@+id/ib04"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -109,58 +109,53 @@
 
         <ImageButton
             android:id="@+id/ib10"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib11"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib12"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib13"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib14"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
     </LinearLayout>
 
     <LinearLayout
@@ -172,58 +167,53 @@
 
         <ImageButton
             android:id="@+id/ib20"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib21"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib22"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib23"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib24"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
     </LinearLayout>
 
     <LinearLayout
@@ -235,58 +225,53 @@
 
         <ImageButton
             android:id="@+id/ib30"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib31"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib32"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib33"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
 
         <ImageButton
             android:id="@+id/ib34"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/plain_bg" />
+            android:scaleType="fitCenter" />
     </LinearLayout>
 
     <LinearLayout
@@ -298,10 +283,10 @@
 
         <ImageButton
             android:id="@+id/ib40"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -309,10 +294,10 @@
 
         <ImageButton
             android:id="@+id/ib41"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -320,10 +305,10 @@
 
         <ImageButton
             android:id="@+id/ib42"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -331,10 +316,10 @@
 
         <ImageButton
             android:id="@+id/ib43"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"
@@ -342,10 +327,10 @@
 
         <ImageButton
             android:id="@+id/ib44"
-            android:layout_width="wrap_content"
+            android:layout_width="66dp"
             android:layout_height="70dp"
             android:layout_margin="1dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:adjustViewBounds="true"
             android:padding="15dp"
             android:scaleType="fitCenter"

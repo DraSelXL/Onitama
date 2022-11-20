@@ -1,4 +1,4 @@
-package com.example.onitama
+package com.example.onitama.components
 
 class Coordinate(
     //ex: [0,1]
