@@ -22,6 +22,8 @@
             android:layout_height="80dp"
             android:layout_marginRight="5dp"
             android:adjustViewBounds="true"
+            android:rotationX="180"
+            android:rotationY="180"
             app:srcCompat="@drawable/horse" />
 
         <ImageView
@@ -30,6 +32,8 @@
             android:layout_height="80dp"
             android:layout_marginLeft="5dp"
             android:adjustViewBounds="true"
+            android:rotationX="180"
+            android:rotationY="180"
             app:srcCompat="@drawable/cobra" />
     </LinearLayout>
 
@@ -47,7 +51,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_pawn_blue" />
@@ -59,7 +62,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_pawn_blue" />
@@ -71,7 +73,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_crown_blue" />
@@ -83,7 +84,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_pawn_blue" />
@@ -95,7 +95,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_pawn_blue" />
@@ -115,7 +114,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -127,7 +125,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -139,7 +136,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -151,7 +147,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -163,7 +158,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -183,7 +177,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -195,7 +188,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -207,7 +199,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -219,7 +210,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -231,7 +221,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -251,7 +240,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -263,7 +251,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -275,7 +262,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -287,7 +273,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -299,7 +284,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/plain_bg" />
@@ -319,7 +303,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_pawn_red" />
@@ -331,7 +314,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_pawn_red" />
@@ -343,7 +325,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_crown_red" />
@@ -355,7 +336,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_pawn_red" />
@@ -367,7 +347,6 @@
             android:layout_margin="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
-            android:backgroundTint="#FFFFFFFF"
             android:padding="15dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_pawn_red" />
