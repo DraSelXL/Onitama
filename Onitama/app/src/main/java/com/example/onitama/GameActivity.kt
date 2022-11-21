@@ -241,13 +241,12 @@ class GameActivity : AppCompatActivity() {
     /**
      * Add highlights to the board blocks based on the currently selected piece and possible moves of the selected card.
      */
-    private fun applyBoardMoves(){
+    private fun applyBoardMoves():Boolean{
+        var isAble = false
         //color the board
         if (selectedBlock != null) { // Is there a block currently being selected?
             var myCard: Card
-
             refreshBoardColor()
-
             if (turn == GameActivity.PLAYER_TURN) { // Is it the player's turn?
                 myCard = player.cards[selectedCard] // Get the currently selected card from the player
 
@@ -262,6 +261,7 @@ class GameActivity : AppCompatActivity() {
 
                         // Tag indicates that the current block is a valid move
                         board[yNext][xNext].tag = 1
+                        isAble = true
                     }
                 }
             }
@@ -279,11 +279,12 @@ class GameActivity : AppCompatActivity() {
 
                         // Tag indicates that the current block is a valid move
                         board[yNext][xNext].tag = 1
+                        isAble = true
                     }
                 }
             }
-
         }
+        return isAble
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -352,7 +353,11 @@ class GameActivity : AppCompatActivity() {
                             // Start highlighting blocks for possible moves and prepare to move the piece
                             selectedBlock = blocks[i][j]
                             isSelecting = true
-                            applyBoardMoves()
+                            var isAble = applyBoardMoves()
+                            if(!isAble){
+                                selectedBlock = null
+                                isSelecting = false
+                            }
                         }
                     }
                    else {
