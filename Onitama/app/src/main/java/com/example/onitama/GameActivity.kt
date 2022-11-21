@@ -374,6 +374,27 @@ class GameActivity : AppCompatActivity() {
 
                            board[i][j].setImageResource(blocks[i][j].piece!!.img)
 
+                           if(turn==GameActivity.PLAYER_TURN){
+                               var temp = player.cards[selectedCard].copy()
+                               player.cards[selectedCard] = storedCard!!.copy()
+                               storedCard  = temp
+
+                               ivPlayer1.setImageResource(player.cards[0].img)
+                               ivPlayer2.setImageResource(player.cards[1].img)
+
+                               ivNext.setImageResource(storedCard!!.img)
+                           }
+                           else if(turn==GameActivity.ENEMY_TURN){
+                               var temp = enemy.cards[selectedCard].copy()
+                               enemy.cards[selectedCard] = storedCard!!.copy()
+                               storedCard  = temp
+
+                               ivEnemy1.setImageResource(enemy.cards[0].img)
+                               ivEnemy2.setImageResource(enemy.cards[1].img)
+
+                               ivNext.setImageResource(storedCard!!.img)
+                           }
+
                            cleanBlock(oldY, oldX) // Resets the previous piece block position
                            refreshSelection()
 

@@ -1,7 +1,7 @@
 package com.example.onitama.components
 
 //constructor
-class Card(
+data class Card(
     var name:String,
     var img:Int,
     var color:String, // Red or Blue
