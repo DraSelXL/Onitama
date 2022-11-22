@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.Toast
 import com.example.onitama.components.*
 import java.util.*
 
@@ -19,6 +20,8 @@ class GameActivity : AppCompatActivity() {
     }
 
     // Main Properties
+    private var gameStatus = true               // Indicates whether the game is running or finished (True = running)
+
     private lateinit var ivEnemy1: ImageView    // Enemy Card Image View 1
     private lateinit var ivEnemy2: ImageView    // Enemy Card Image View 2
 
@@ -33,7 +36,11 @@ class GameActivity : AppCompatActivity() {
     private var turn = GameActivity.PLAYER_TURN // Indicates whose turn it is currently
     private var selectedCard = -1               // Holds the current selected index from the owned cards
     private var selectedBlock: Block? = null    // Indicates what is the currently selected game board
-    private var isSelecting = false
+    private var isSelecting = false             // The current mode for selecting a piece
+
+    // Indicates how many pieces are currently on the board
+    private var playerMasterStatus = true
+    private var enemyMasterStatus = true
 
     // A list of all available card in the deck
     private var allCards:Array<Card> = arrayOf(
@@ -166,6 +173,9 @@ class GameActivity : AppCompatActivity() {
 
         turn = if (storedCard!!.color == Card.BLUE) GameActivity.ENEMY_TURN else GameActivity.PLAYER_TURN
 
+        playerMasterStatus = true
+        enemyMasterStatus = true
+
         initBlocks()
     }
 
@@ -179,8 +189,8 @@ class GameActivity : AppCompatActivity() {
     private fun isValidPosition(y: Int, x: Int): Boolean {
         var isValid = true
 
-        // Is the given position inside the board and the block is empty
-        if (!(y in 0..4 && x in 0..4) || blocks[y][x].status != 0) {
+        // Position is not valid if the block is not inside the board or the block contains a friendly piece
+        if (!(y in 0..4 && x in 0..4) || blocks[y][x].occupier == turn) {
             isValid = false
         }
 
@@ -287,6 +297,85 @@ class GameActivity : AppCompatActivity() {
         return isAble
     }
 
+    /**
+     * Moves a piece from the old position to the new position.
+     *
+     * @param oldPos The old coordinate of the piece to move.
+     * @param newPos The new coordinate of the piece to move.
+     * @param currentTurn Whose piece is being moved.
+     */
+    private fun movePiece(oldPos: Coordinate, newPos: Coordinate, currentTurn: String) {
+        var targetBlock = blocks[newPos.y][newPos.x]
+
+        // Checks if the target block has an enemy piece
+        if (targetBlock.occupier != Block.OCCUPY_NONE && targetBlock.occupier != currentTurn) {
+            if (targetBlock.piece?.type == Piece.MASTER) { // Is the piece being defeated is of type master?
+                if (currentTurn == GameActivity.PLAYER_TURN)
+                    enemyMasterStatus = false
+                else if (currentTurn == GameActivity.ENEMY_TURN)
+                    playerMasterStatus = false
+            }
+        }
+
+        // Set the block attributes
+        blocks[newPos.y][newPos.x] = selectedBlock!!
+        blocks[newPos.y][newPos.x].pos = newPos
+        blocks[newPos.y][newPos.x].occupier = currentTurn
+
+        board[newPos.y][newPos.x].setImageResource(blocks[newPos.y][newPos.x].piece!!.img)
+
+        // Whose turn currently is moving the piece and replace the cards accordingly
+        if (currentTurn == GameActivity.PLAYER_TURN) {
+            var temp = player.cards[selectedCard].copy()
+            player.cards[selectedCard] = storedCard!!.copy()
+            storedCard  = temp
+
+            ivPlayer1.setImageResource(player.cards[0].img)
+            ivPlayer2.setImageResource(player.cards[1].img)
+
+            ivNext.setImageResource(storedCard!!.img)
+        }
+        else if (currentTurn == GameActivity.ENEMY_TURN) {
+            var temp = enemy.cards[selectedCard].copy()
+            enemy.cards[selectedCard] = storedCard!!.copy()
+            storedCard = temp
+
+            ivEnemy1.setImageResource(enemy.cards[0].img)
+            ivEnemy2.setImageResource(enemy.cards[1].img)
+
+            ivNext.setImageResource(storedCard!!.img)
+        }
+
+        cleanBlock(oldPos.y, oldPos.x) // Resets the previous piece block position
+    }
+
+    /**
+     * Checks the game whether a win condition is achieved every time a move is happening.
+     */
+    private fun checkWinCondition() {
+        if (playerMasterStatus == false) { // Has the player run out of pieces?
+            Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
+            gameStatus = false
+            return
+        }
+        else if (enemyMasterStatus == false) {
+            Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
+            gameStatus = false
+            return
+        }
+
+        if (blocks[0][2].occupier == GameActivity.PLAYER_TURN) {
+            Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
+            gameStatus = false
+            return
+        }
+        else if (blocks[4][2].occupier == GameActivity.ENEMY_TURN) {
+            Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
+            gameStatus = false
+            return
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
@@ -347,58 +436,39 @@ class GameActivity : AppCompatActivity() {
         for (i in board.indices) {
             for (j in board[i].indices) {
                 board[i][j].setOnClickListener {
-                    // Check if current matches the player turn
-                    if (!isSelecting) { // Is the current mode not piece selected
-                        if (selectedCard != -1 && blocks[i][j].status != 0 && blocks[i][j].occupier == turn) {
-                            // Start highlighting blocks for possible moves and prepare to move the piece
-                            selectedBlock = blocks[i][j]
-                            isSelecting = true
-                            var isAble = applyBoardMoves()
-                            if(!isAble){
-                                selectedBlock = null
-                                isSelecting = false
-                            }
+                    // Checks whether the game is still running
+                    if (gameStatus == false) {
+                        return@setOnClickListener
+                    }
+
+
+                    // Select a piece when a piece is being selected from the board
+                    if (selectedCard != -1 && blocks[i][j].status != 0 && blocks[i][j].occupier == turn) { // Has a card been selected, has a piece on the block, and is the correct piece
+                        // Start highlighting blocks for possible moves and prepare to move the piece
+                        selectedBlock = blocks[i][j]
+                        isSelecting = true
+                        var isAble = applyBoardMoves()
+                        if(!isAble){
+                            selectedBlock = null
+                            isSelecting = false
                         }
                     }
-                   else {
+
+                    // Move a piece if a piece is being selected and a board block is being clicked
+                    if (isSelecting) { // Is the current mode selecting a piece
                        //board[i][j] = new location
                        if (board[i][j].tag == 1) { // Is the clicked block a valid move?
-                           // Place the piece to the clicked block
-                           var oldY = selectedBlock!!.pos.y
-                           var oldX = selectedBlock!!.pos.x
+                           var oldCoordinate: Coordinate = selectedBlock!!.pos
+                           var newCoordinate: Coordinate = Coordinate(i, j)
 
-                           // Set the block attributes
-                           blocks[i][j] = selectedBlock!!
-                           blocks[i][j].pos = Coordinate(i,j)
-                           blocks[i][j].occupier = turn
-
-                           board[i][j].setImageResource(blocks[i][j].piece!!.img)
-
-                           if(turn==GameActivity.PLAYER_TURN){
-                               var temp = player.cards[selectedCard].copy()
-                               player.cards[selectedCard] = storedCard!!.copy()
-                               storedCard  = temp
-
-                               ivPlayer1.setImageResource(player.cards[0].img)
-                               ivPlayer2.setImageResource(player.cards[1].img)
-
-                               ivNext.setImageResource(storedCard!!.img)
-                           }
-                           else if(turn==GameActivity.ENEMY_TURN){
-                               var temp = enemy.cards[selectedCard].copy()
-                               enemy.cards[selectedCard] = storedCard!!.copy()
-                               storedCard  = temp
-
-                               ivEnemy1.setImageResource(enemy.cards[0].img)
-                               ivEnemy2.setImageResource(enemy.cards[1].img)
-
-                               ivNext.setImageResource(storedCard!!.img)
-                           }
-
-                           cleanBlock(oldY, oldX) // Resets the previous piece block position
+                           // Place the piece onto the clicked block
+                           movePiece(oldCoordinate, newCoordinate, turn)
                            refreshSelection()
 
+                           // Switch the turn
                            turn = if (turn == GameActivity.PLAYER_TURN) GameActivity.ENEMY_TURN else GameActivity.PLAYER_TURN
+
+                           checkWinCondition();
                        }
                     }
                 }
