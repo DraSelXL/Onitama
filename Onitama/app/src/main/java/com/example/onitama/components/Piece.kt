@@ -1,8 +1,9 @@
 package com.example.onitama.components
 
 class Piece(
-    var type:String, //pawn or king
-    var img:Int
+    var type: String,   // Pawn or Master
+    var img: Int,       // The Image Resource of the piece
+    var color: String   // The player color
 ) {
     // Static Variables
     companion object {

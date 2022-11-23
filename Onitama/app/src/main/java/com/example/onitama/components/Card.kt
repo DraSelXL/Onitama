@@ -26,10 +26,6 @@ data class Card(
         var BOAR = "boar"
         var EEL = "eel"
         var COBRA = "cobra"
-
-        // Card Color
-        var BLUE = "blue"
-        var RED = "red"
     }
 
     init {

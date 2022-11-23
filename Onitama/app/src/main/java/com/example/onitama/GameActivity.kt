@@ -38,28 +38,28 @@ class GameActivity : AppCompatActivity() {
     private var selectedBlock: Block? = null    // Indicates what is the currently selected game board
     private var isSelecting = false             // The current mode for selecting a piece
 
-    // Indicates how many pieces are currently on the board
+    // Indicates whether the master piece is still in the board
     private var playerMasterStatus = true
     private var enemyMasterStatus = true
 
     // A list of all available card in the deck
     private var allCards:Array<Card> = arrayOf(
-        Card(Card.TIGER, R.drawable.tiger, Card.BLUE),
-        Card(Card.DRAGON, R.drawable.dragon, Card.RED),
-        Card(Card.FROG, R.drawable.frog, Card.RED),
-        Card(Card.RABBIT, R.drawable.rabbit, Card.BLUE),
-        Card(Card.CRAB, R.drawable.crab, Card.BLUE),
-        Card(Card.ELEPHANT, R.drawable.elephant, Card.RED),
-        Card(Card.GOOSE, R.drawable.goose, Card.BLUE),
-        Card(Card.ROOSTER, R.drawable.rooster, Card.RED),
-        Card(Card.MONKEY, R.drawable.monkey, Card.BLUE),
-        Card(Card.MANTIS, R.drawable.mantis, Card.RED),
-        Card(Card.HORSE, R.drawable.horse, Card.RED),
-        Card(Card.OX, R.drawable.ox, Card.BLUE),
-        Card(Card.CRANE, R.drawable.crane, Card.BLUE),
-        Card(Card.BOAR, R.drawable.boar, Card.RED),
-        Card(Card.EEL, R.drawable.eel, Card.BLUE),
-        Card(Card.COBRA, R.drawable.cobra, Card.RED),
+        Card(Card.TIGER, R.drawable.tiger, PlayerColor.BLUE),
+        Card(Card.DRAGON, R.drawable.dragon, PlayerColor.RED),
+        Card(Card.FROG, R.drawable.frog, PlayerColor.RED),
+        Card(Card.RABBIT, R.drawable.rabbit, PlayerColor.BLUE),
+        Card(Card.CRAB, R.drawable.crab, PlayerColor.BLUE),
+        Card(Card.ELEPHANT, R.drawable.elephant, PlayerColor.RED),
+        Card(Card.GOOSE, R.drawable.goose, PlayerColor.BLUE),
+        Card(Card.ROOSTER, R.drawable.rooster, PlayerColor.RED),
+        Card(Card.MONKEY, R.drawable.monkey, PlayerColor.BLUE),
+        Card(Card.MANTIS, R.drawable.mantis, PlayerColor.RED),
+        Card(Card.HORSE, R.drawable.horse, PlayerColor.RED),
+        Card(Card.OX, R.drawable.ox, PlayerColor.BLUE),
+        Card(Card.CRANE, R.drawable.crane, PlayerColor.BLUE),
+        Card(Card.BOAR, R.drawable.boar, PlayerColor.RED),
+        Card(Card.EEL, R.drawable.eel, PlayerColor.BLUE),
+        Card(Card.COBRA, R.drawable.cobra, PlayerColor.RED),
     )
 
     private var storedCard: Card? = null                                        // The stored card that determine the starting turn
@@ -92,8 +92,8 @@ class GameActivity : AppCompatActivity() {
             gameCards.add(allCards[rnd])
         }
         // Store the randomized cards into the players
-        enemy = Player(arrayOf(gameCards[0], gameCards[1]), Card.BLUE)
-        player = Player(arrayOf(gameCards[2], gameCards[3]), Card.RED)
+        enemy = Player(arrayOf(gameCards[0], gameCards[1]), PlayerColor.BLUE)
+        player = Player(arrayOf(gameCards[2], gameCards[3]), PlayerColor.RED)
 
         storedCard = gameCards[gameCards.lastIndex] // Store the last randomized card into the activity
 
@@ -126,14 +126,14 @@ class GameActivity : AppCompatActivity() {
                     if (j != 2) { // Is the current column not the master's column?
                         rowBlock.add(
                             Block(1, Coordinate(i,j), Block.OCCUPY_ENEMY,
-                                Piece(Piece.PAWN, R.drawable.ic_pawn_blue)
+                                Piece(Piece.PAWN, R.drawable.ic_pawn_blue, PlayerColor.BLUE)
                             )
                         )
                     }
                     else { // Set the column with a master piece
                         rowBlock.add(
                             Block(1, Coordinate(i,j), Block.OCCUPY_ENEMY,
-                                Piece(Piece.MASTER, R.drawable.ic_crown_blue)
+                                Piece(Piece.MASTER, R.drawable.ic_crown_blue, PlayerColor.BLUE)
                             )
                         )
                     }
@@ -142,14 +142,14 @@ class GameActivity : AppCompatActivity() {
                     if(j != 2){ // Is the current row not the master's column?
                         rowBlock.add(
                             Block(1, Coordinate(i,j), Block.OCCUPY_PLAYER,
-                                Piece(Piece.PAWN, R.drawable.ic_pawn_red)
+                                Piece(Piece.PAWN, R.drawable.ic_pawn_red, PlayerColor.RED)
                             )
                         )
                     }
                     else { // Set the column with a master piece
                         rowBlock.add(
                             Block(1, Coordinate(i,j), Block.OCCUPY_PLAYER,
-                                Piece(Piece.MASTER, R.drawable.ic_crown_red)
+                                Piece(Piece.MASTER, R.drawable.ic_crown_red, PlayerColor.BLUE)
                             )
                         )
                     }
@@ -171,7 +171,7 @@ class GameActivity : AppCompatActivity() {
     private fun initNewGame() {
         initRandomCards()
 
-        turn = if (storedCard!!.color == Card.BLUE) GameActivity.ENEMY_TURN else GameActivity.PLAYER_TURN
+        turn = if (storedCard!!.color == PlayerColor.BLUE) GameActivity.ENEMY_TURN else GameActivity.PLAYER_TURN
 
         playerMasterStatus = true
         enemyMasterStatus = true
@@ -353,23 +353,23 @@ class GameActivity : AppCompatActivity() {
      * Checks the game whether a win condition is achieved every time a move is happening.
      */
     private fun checkWinCondition() {
-        if (playerMasterStatus == false) { // Has the player run out of pieces?
-            Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
-            gameStatus = false
-            return
-        }
-        else if (enemyMasterStatus == false) {
+        if (playerMasterStatus == false) { // Has the player lost the master piece?
             Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
-
-        if (blocks[0][2].occupier == GameActivity.PLAYER_TURN) {
+        else if (enemyMasterStatus == false) { // Has the enemy lost the master piece?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
-        else if (blocks[4][2].occupier == GameActivity.ENEMY_TURN) {
+
+        if (blocks[0][2].occupier == GameActivity.PLAYER_TURN && blocks[0][2].piece?.type == Piece.MASTER) { // Has the enemy's temple been occupied by the player's master piece?
+            Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
+            gameStatus = false
+            return
+        }
+        else if (blocks[4][2].occupier == GameActivity.ENEMY_TURN && blocks[4][2].piece?.type == Piece.MASTER) { // Has the player's temple been occupied by the enemy's master piece?
             Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return

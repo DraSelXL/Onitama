@@ -1,7 +1,7 @@
 package com.example.onitama.components
 
-class Player(
-    var cards:Array<Card>,
-    var color:String,
+open class Player(
+    open var cards: Array<Card>,
+    open var color: String,
 ) {
 }
