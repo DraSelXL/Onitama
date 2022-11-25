@@ -1,6 +1,6 @@
 package com.example.onitama.components
 
-class Block(
+data class Block(
     //0 for empty
     var status: Int,
     var pos: Coordinate,

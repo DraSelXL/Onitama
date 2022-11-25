@@ -3,6 +3,7 @@ package com.example.onitama
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
@@ -63,8 +64,8 @@ class GameActivity : AppCompatActivity() {
     )
 
     private var storedCard: Card? = null                                        // The stored card that determine the starting turn
-    private var board: MutableList<MutableList<ImageButton>> = mutableListOf()  // The variable that stores the ImageButtons
-    private var blocks: MutableList<MutableList<Block>> = mutableListOf()       // The variable that stores the conditions of every block in the board
+    private var imageBoard: MutableList<MutableList<ImageButton>> = mutableListOf()  // The variable that stores the ImageButtons
+    private var board: Board = Board()     // The variable that stores the conditions of every block in the board
 
     /**
      * Randomizes 5 starting cards and store 2 of each of the randomized cards into each players.
@@ -108,61 +109,6 @@ class GameActivity : AppCompatActivity() {
     }
 
     /**
-     * Initialize the blocks of the game board with the starting pieces for both players.
-     * The first row of the board is filled with the enemy's pieces, while the last row is filled with the player's pieces.
-     *
-     * Automatically called when starting a new game within the `initNewGame()` method.
-     */
-    private fun initBlocks() {
-        blocks.clear()
-        // Rows
-        for (i in 0..4) {
-            var rowBlock = mutableListOf<Block>()   // A temporary row MutableList to contain the row blocks
-            // Columns
-            for (j in 0..4) {
-                board[i][j].setBackgroundColor(Color.parseColor("#FFFFFFFF"))
-
-                if (i == 0) { // Is the current row the enemy's?
-                    if (j != 2) { // Is the current column not the master's column?
-                        rowBlock.add(
-                            Block(1, Coordinate(i,j), Block.OCCUPY_ENEMY,
-                                Piece(Piece.PAWN, R.drawable.ic_pawn_blue)
-                            )
-                        )
-                    }
-                    else { // Set the column with a master piece
-                        rowBlock.add(
-                            Block(1, Coordinate(i,j), Block.OCCUPY_ENEMY,
-                                Piece(Piece.MASTER, R.drawable.ic_crown_blue)
-                            )
-                        )
-                    }
-                }
-                else if (i == 4) { // Is the current row the player's row?
-                    if(j != 2){ // Is the current row not the master's column?
-                        rowBlock.add(
-                            Block(1, Coordinate(i,j), Block.OCCUPY_PLAYER,
-                                Piece(Piece.PAWN, R.drawable.ic_pawn_red)
-                            )
-                        )
-                    }
-                    else { // Set the column with a master piece
-                        rowBlock.add(
-                            Block(1, Coordinate(i,j), Block.OCCUPY_PLAYER,
-                                Piece(Piece.MASTER, R.drawable.ic_crown_red)
-                            )
-                        )
-                    }
-                }
-                else { // Sets the current block as an empty block
-                    rowBlock.add(Block(0, Coordinate(i,j)))
-                }
-            }
-            blocks.add(rowBlock)
-        }
-    }
-
-    /**
      * Starts a new game by randomizing the cards and resetting the blocks.
      *
      * This method calls the `initRandomCards()` method to randomize the cards and then decides who goes first.
@@ -176,7 +122,7 @@ class GameActivity : AppCompatActivity() {
         playerMasterStatus = true
         enemyMasterStatus = true
 
-        initBlocks()
+        board.refresh() // Reset the board
     }
 
     /**
@@ -190,7 +136,7 @@ class GameActivity : AppCompatActivity() {
         var isValid = true
 
         // Position is not valid if the block is not inside the board or the block contains a friendly piece
-        if (!(y in 0..4 && x in 0..4) || blocks[y][x].occupier == turn) {
+        if (!(y in 0..4 && x in 0..4) || board.blocks[y][x].occupier == turn) {
             isValid = false
         }
 
@@ -201,10 +147,10 @@ class GameActivity : AppCompatActivity() {
      * Resets the background color of the blocks in the board to white.
      */
     private fun refreshBoardColor(){
-        for (i in board.indices) { // Rows
-            for (j in board[i].indices) { // Columns
-                board[i][j].setBackgroundColor(Color.parseColor("#FFFFFFFF"))
-                board[i][j].tag = -1
+        for (i in imageBoard.indices) { // Rows
+            for (j in imageBoard[i].indices) { // Columns
+                imageBoard[i][j].setBackgroundColor(Color.parseColor("#FFFFFFFF"))
+                imageBoard[i][j].tag = -1
             }
         }
     }
@@ -213,8 +159,8 @@ class GameActivity : AppCompatActivity() {
      * Set the block's background color with the given position to green to indicate a possible move for a piece.
      */
     private fun setColorBlock(y:Int, x:Int){
-        board[y][x].setBackgroundColor(Color.GREEN)
-        board[y][x].setBackgroundResource(R.drawable.occupy_bg)
+        imageBoard[y][x].setBackgroundColor(Color.GREEN)
+        imageBoard[y][x].setBackgroundResource(R.drawable.occupy_bg)
 //        board[y][x].setBackgroundResource(0)
     }
 
@@ -244,14 +190,14 @@ class GameActivity : AppCompatActivity() {
      */
     private fun cleanBlock(y: Int, x: Int){
         // board[y][x].setImageResource(R.drawable.plain_bg)
-        board[y][x].setImageResource(0)
-        blocks[y][x] = Block(0, Coordinate(y,x))
+        imageBoard[y][x].setImageResource(0)
+        board.blocks[y][x] = Block(0, Coordinate(y,x))
     }
 
     /**
      * Add highlights to the board blocks based on the currently selected piece and possible moves of the selected card.
      */
-    private fun applyBoardMoves():Boolean{
+    private fun applyBoardMoves(): Boolean{
         var isAble = false
         //color the board
         if (selectedBlock != null) { // Is there a block currently being selected?
@@ -270,7 +216,7 @@ class GameActivity : AppCompatActivity() {
                         setColorBlock(yNext, xNext) // Highlight the block
 
                         // Tag indicates that the current block is a valid move
-                        board[yNext][xNext].tag = 1
+                        imageBoard[yNext][xNext].tag = 1
                         isAble = true
                     }
                 }
@@ -288,7 +234,7 @@ class GameActivity : AppCompatActivity() {
                         setColorBlock(yNext, xNext)
 
                         // Tag indicates that the current block is a valid move
-                        board[yNext][xNext].tag = 1
+                        imageBoard[yNext][xNext].tag = 1
                         isAble = true
                     }
                 }
@@ -305,11 +251,11 @@ class GameActivity : AppCompatActivity() {
      * @param currentTurn Whose piece is being moved.
      */
     private fun movePiece(oldPos: Coordinate, newPos: Coordinate, currentTurn: String) {
-        var targetBlock = blocks[newPos.y][newPos.x]
+        var eatenPiece = board.movePiece(oldPos, newPos)
 
         // Checks if the target block has an enemy piece
-        if (targetBlock.occupier != Block.OCCUPY_NONE && targetBlock.occupier != currentTurn) {
-            if (targetBlock.piece?.type == Piece.MASTER) { // Is the piece being defeated is of type master?
+        if (eatenPiece != null) {
+            if (eatenPiece.type == Piece.MASTER) { // Is the piece being defeated is of type master?
                 if (currentTurn == GameActivity.PLAYER_TURN)
                     enemyMasterStatus = false
                 else if (currentTurn == GameActivity.ENEMY_TURN)
@@ -317,12 +263,7 @@ class GameActivity : AppCompatActivity() {
             }
         }
 
-        // Set the block attributes
-        blocks[newPos.y][newPos.x] = selectedBlock!!
-        blocks[newPos.y][newPos.x].pos = newPos
-        blocks[newPos.y][newPos.x].occupier = currentTurn
-
-        board[newPos.y][newPos.x].setImageResource(blocks[newPos.y][newPos.x].piece!!.img)
+        imageBoard[newPos.y][newPos.x].setImageResource(board.blocks[newPos.y][newPos.x].piece!!.img)
 
         // Whose turn currently is moving the piece and replace the cards accordingly
         if (currentTurn == GameActivity.PLAYER_TURN) {
@@ -354,22 +295,22 @@ class GameActivity : AppCompatActivity() {
      */
     private fun checkWinCondition() {
         if (playerMasterStatus == false) { // Has the player run out of pieces?
-            Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
-            gameStatus = false
-            return
-        }
-        else if (enemyMasterStatus == false) {
             Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
-
-        if (blocks[0][2].occupier == GameActivity.PLAYER_TURN) {
+        else if (enemyMasterStatus == false) {
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
-        else if (blocks[4][2].occupier == GameActivity.ENEMY_TURN) {
+
+        if (board.blocks[0][2].occupier == GameActivity.PLAYER_TURN) {
+            Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
+            gameStatus = false
+            return
+        }
+        else if (board.blocks[4][2].occupier == GameActivity.ENEMY_TURN) {
             Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
@@ -381,11 +322,11 @@ class GameActivity : AppCompatActivity() {
         setContentView(R.layout.activity_game)
 
         // Set board
-        board.add(mutableListOf(findViewById(R.id.ib00), findViewById(R.id.ib01), findViewById(R.id.ib02), findViewById(R.id.ib03), findViewById(R.id.ib04)))
-        board.add(mutableListOf(findViewById(R.id.ib10), findViewById(R.id.ib11), findViewById(R.id.ib12), findViewById(R.id.ib13), findViewById(R.id.ib14)))
-        board.add(mutableListOf(findViewById(R.id.ib20), findViewById(R.id.ib21), findViewById(R.id.ib22), findViewById(R.id.ib23), findViewById(R.id.ib24)))
-        board.add(mutableListOf(findViewById(R.id.ib30), findViewById(R.id.ib31), findViewById(R.id.ib32), findViewById(R.id.ib33), findViewById(R.id.ib34)))
-        board.add(mutableListOf(findViewById(R.id.ib40), findViewById(R.id.ib41), findViewById(R.id.ib42), findViewById(R.id.ib43), findViewById(R.id.ib44)))
+        imageBoard.add(mutableListOf(findViewById(R.id.ib00), findViewById(R.id.ib01), findViewById(R.id.ib02), findViewById(R.id.ib03), findViewById(R.id.ib04)))
+        imageBoard.add(mutableListOf(findViewById(R.id.ib10), findViewById(R.id.ib11), findViewById(R.id.ib12), findViewById(R.id.ib13), findViewById(R.id.ib14)))
+        imageBoard.add(mutableListOf(findViewById(R.id.ib20), findViewById(R.id.ib21), findViewById(R.id.ib22), findViewById(R.id.ib23), findViewById(R.id.ib24)))
+        imageBoard.add(mutableListOf(findViewById(R.id.ib30), findViewById(R.id.ib31), findViewById(R.id.ib32), findViewById(R.id.ib33), findViewById(R.id.ib34)))
+        imageBoard.add(mutableListOf(findViewById(R.id.ib40), findViewById(R.id.ib41), findViewById(R.id.ib42), findViewById(R.id.ib43), findViewById(R.id.ib44)))
 
         // Set cards
         ivEnemy1 = findViewById(R.id.ivEnemy1)
@@ -433,9 +374,9 @@ class GameActivity : AppCompatActivity() {
         }
 
         // Add an event listener for every board blocks
-        for (i in board.indices) {
-            for (j in board[i].indices) {
-                board[i][j].setOnClickListener {
+        for (i in imageBoard.indices) {
+            for (j in imageBoard[i].indices) {
+                imageBoard[i][j].setOnClickListener {
                     // Checks whether the game is still running
                     if (gameStatus == false) {
                         return@setOnClickListener
@@ -443,9 +384,9 @@ class GameActivity : AppCompatActivity() {
 
 
                     // Select a piece when a piece is being selected from the board
-                    if (selectedCard != -1 && blocks[i][j].status != 0 && blocks[i][j].occupier == turn) { // Has a card been selected, has a piece on the block, and is the correct piece
+                    if (selectedCard != -1 && board.blocks[i][j].status != 0 && board.blocks[i][j].occupier == turn) { // Has a card been selected, has a piece on the block, and is the correct piece
                         // Start highlighting blocks for possible moves and prepare to move the piece
-                        selectedBlock = blocks[i][j]
+                        selectedBlock = board.blocks[i][j]
                         isSelecting = true
                         var isAble = applyBoardMoves()
                         if(!isAble){
@@ -457,7 +398,7 @@ class GameActivity : AppCompatActivity() {
                     // Move a piece if a piece is being selected and a board block is being clicked
                     if (isSelecting) { // Is the current mode selecting a piece
                        //board[i][j] = new location
-                       if (board[i][j].tag == 1) { // Is the clicked block a valid move?
+                       if (imageBoard[i][j].tag == 1) { // Is the clicked block a valid move?
                            var oldCoordinate: Coordinate = selectedBlock!!.pos
                            var newCoordinate: Coordinate = Coordinate(i, j)
 
