@@ -294,23 +294,23 @@ class GameActivity : AppCompatActivity() {
      * Checks the game whether a win condition is achieved every time a move is happening.
      */
     private fun checkWinCondition() {
-        if (playerMasterStatus == false) { // Has the player run out of pieces?
+        if (board.redMaster == null) { // Has the red player lost their master?
             Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
-        else if (enemyMasterStatus == false) {
+        else if (board.blueMaster == null) { // Has the red player lost their master?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
 
-        if (board.blocks[0][2].occupier == GameActivity.PLAYER_TURN) {
+        if (board.blocks[Board.BLUE_MASTER_BLOCK.y][Board.BLUE_MASTER_BLOCK.y].occupier == GameActivity.PLAYER_TURN) { // Has the blue player temple been occupied?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
-        else if (board.blocks[4][2].occupier == GameActivity.ENEMY_TURN) {
+        else if (board.blocks[Board.RED_MASTER_BLOCK.y][Board.RED_MASTER_BLOCK.x].occupier == GameActivity.ENEMY_TURN) { // Has the red player temple been occupied?
             Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return

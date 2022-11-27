@@ -107,7 +107,7 @@ class Board(
                         blocks[row][column].occupier = Block.OCCUPY_PLAYER
 
                         // Create new piece
-                        var piece = Piece(Piece.PAWN, R.drawable.ic_pawn_red, PlayerColor.RED)
+                        var piece = Piece(Piece.MASTER, R.drawable.ic_crown_red, PlayerColor.RED)
                         piece.pos = Coordinate(row, column)
                         blocks[row][column].piece = piece
                         redMaster = piece
@@ -134,10 +134,16 @@ class Board(
 
         if (targetPiece != null) {
             if (targetPiece.color == PlayerColor.RED) {
-                redPieces.remove(targetPiece)
+                if (targetPiece.type == Piece.PAWN) {
+                    redPieces.remove(targetPiece)
+                }
+                else redMaster = null
             }
             else {
-                bluePieces.remove(targetPiece)
+                if (targetPiece.type == Piece.PAWN) {
+                    bluePieces.remove(targetPiece)
+                }
+                else blueMaster = null
             }
         }
 
