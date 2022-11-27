@@ -10,4 +10,6 @@ data class Piece(
         var PAWN = "pawn"       // Indicates that the piece is of type "pawn"
         var MASTER = "master"   // Indicates that the piece is of type "master"
     }
+
+    var pos = Coordinate(-1, -1)
 }

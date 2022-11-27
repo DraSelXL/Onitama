@@ -15,7 +15,8 @@ class Board(
     companion object {
         var WIDTH = 5           // Indicates the width of the board
         var HEIGHT = 5          // Indicates the height of the board
-        var MASTER_BLOCK = 2    // Indicates on which column is the Master Piece spawn
+        var RED_MASTER_BLOCK = Coordinate(4, 2)     // Indicates on which block is the Red Master Piece spawn
+        var BLUE_MASTER_BLOCK = Coordinate(0, 2)    // Indicates on which block is the Blue Master Piece spawn
     }
 
     /**
@@ -30,43 +31,86 @@ class Board(
         }
     }
 
-    init {
-        refresh()
+    /** The list of red pieces on the board. */
+    var redMaster: Piece? = null
+    /** The list of red pawn pieces on the board */
+    var redPieces: ArrayList<Piece> = arrayListOf()
 
+    /** The list of blue pieces on the board. */
+    var blueMaster: Piece? = null
+    /** The list of blue pawn pieces on the board */
+    var bluePieces: ArrayList<Piece> = arrayListOf()
+
+    init {
         if (board != null) {
             blocks = board.blocks.clone()
+
+            redMaster = board.redMaster
+            redPieces = board.redPieces
+
+            blueMaster = board.blueMaster
+            bluePieces = board.bluePieces
+        }
+        else {
+            refresh()
         }
     }
 
     /**
      * Initiates or resets the board with the starting pieces of each players.
-     * Should be called whenever a new game is about to commence.
+     * Called whenever a new game is about to commence.
      */
     fun refresh() {
+        blueMaster = null
+        redMaster = null
+
+        bluePieces.clear()
+        redPieces.clear()
+
         for (row in 0 until Board.HEIGHT) {
             for (column in 0 until Board.WIDTH) {
-                if (row == 0) { // Is the current row the enemy's?
+                if (row == Board.BLUE_MASTER_BLOCK.y) { // Is the current row the enemy's?
                     blocks[row][column].status = 1
 
-                    if (column != Board.MASTER_BLOCK) { // Is the current column not the master's column?
+                    if (column != Board.BLUE_MASTER_BLOCK.x) { // Is the current column not the master's column?
                         blocks[row][column].occupier = Block.OCCUPY_ENEMY
-                        blocks[row][column].piece = Piece(Piece.PAWN, R.drawable.ic_pawn_blue, PlayerColor.BLUE)
+
+                        // Create new piece
+                        var piece = Piece(Piece.PAWN, R.drawable.ic_pawn_blue, PlayerColor.BLUE)
+                        piece.pos = Coordinate(row, column)
+                        bluePieces.add(piece)
+                        blocks[row][column].piece = piece
                     }
                     else { // Set the column with a master piece
                         blocks[row][column].occupier = Block.OCCUPY_ENEMY
-                        blocks[row][column].piece = Piece(Piece.MASTER, R.drawable.ic_crown_blue, PlayerColor.BLUE)
+
+                        // Create new piece
+                        var piece = Piece(Piece.MASTER, R.drawable.ic_crown_blue, PlayerColor.BLUE)
+                        piece.pos = Coordinate(row, column)
+                        blocks[row][column].piece = piece
+                        blueMaster = piece
                     }
                 }
-                else if (row == 4) { // Is the current row the player's row?
+                else if (row == Board.RED_MASTER_BLOCK.y) { // Is the current row the player's row?
                     blocks[row][column].status = 1
 
-                    if (column != 2) { // Is the current row not the master's column?
+                    if (column != Board.RED_MASTER_BLOCK.x) { // Is the current row not the master's column?
                         blocks[row][column].occupier = Block.OCCUPY_PLAYER
-                        blocks[row][column].piece = Piece(Piece.PAWN, R.drawable.ic_pawn_red, PlayerColor.RED)
+
+                        // Create new piece
+                        var piece = Piece(Piece.PAWN, R.drawable.ic_pawn_red, PlayerColor.RED)
+                        piece.pos = Coordinate(row, column)
+                        redPieces.add(piece)
+                        blocks[row][column].piece = piece
                     }
                     else { // Set the column with a master piece
                         blocks[row][column].occupier = Block.OCCUPY_PLAYER
-                        blocks[row][column].piece = Piece(Piece.MASTER, R.drawable.ic_crown_red, PlayerColor.RED)
+
+                        // Create new piece
+                        var piece = Piece(Piece.PAWN, R.drawable.ic_pawn_red, PlayerColor.RED)
+                        piece.pos = Coordinate(row, column)
+                        blocks[row][column].piece = piece
+                        redMaster = piece
                     }
                 }
                 else { // Sets the current block as an empty block
@@ -86,11 +130,20 @@ class Board(
         var targetBlock = blocks[newPosition.y][newPosition.x]
         var oldBlock = blocks[oldPosition.y][oldPosition.x]
 
-        var targetPiece = blocks[targetBlock.pos.y][targetBlock.pos.x].piece?.copy()
+        var targetPiece = blocks[newPosition.y][newPosition.x].piece?.copy()
+
+        if (targetPiece != null) {
+            if (targetPiece.color == PlayerColor.RED) {
+                redPieces.remove(targetPiece)
+            }
+            else {
+                bluePieces.remove(targetPiece)
+            }
+        }
 
         // Set the block attributes
         blocks[newPosition.y][newPosition.x] = Block(oldBlock.status, newPosition, oldBlock.occupier, oldBlock.piece)
-        Log.d("PIECE", "movePiece: " + blocks[newPosition.y][newPosition.x].piece.toString())
+        blocks[newPosition.y][newPosition.x].piece?.pos = newPosition
 
         // Reset the old block
         blocks[oldPosition.y][oldPosition.x].status = 0
@@ -98,14 +151,5 @@ class Board(
         blocks[oldPosition.y][oldPosition.x].occupier = Block.OCCUPY_NONE
 
         return targetPiece
-    }
-
-    /**
-     * Get the piece from the target block in the board.
-     *
-     * @param position The position of the block in the board to get the piece.
-     */
-    fun getBlockPiece(position: Coordinate): Piece? {
-        return blocks[position.y][position.x].piece
     }
 }
