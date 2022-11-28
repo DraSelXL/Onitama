@@ -44,21 +44,21 @@ class BoardEvaluator {
             if (originalColor == PlayerColor.BLUE) {
                 if (node.board.redMaster == null ||
                     (node.board.blueMaster?.pos == Board.RED_MASTER_BLOCK)) {
-                    return MoveEvaluation(node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, Float.POSITIVE_INFINITY)
+                    return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, Float.POSITIVE_INFINITY)
                 }
                 else if (node.board.blueMaster == null ||
                     (node.board.redMaster?.pos == Board.BLUE_MASTER_BLOCK)) {
-                    return MoveEvaluation(node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, Float.NEGATIVE_INFINITY)
+                    return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, Float.NEGATIVE_INFINITY)
                 }
             }
             else if (originalColor == PlayerColor.RED) {
                 if (node.board.blueMaster == null ||
                     (node.board.redMaster?.pos == Board.BLUE_MASTER_BLOCK)) {
-                    return MoveEvaluation(node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, Float.POSITIVE_INFINITY)
+                    return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, Float.POSITIVE_INFINITY)
                 }
                 else if (node.board.redMaster == null ||
                         node.board.blueMaster?.pos == Board.RED_MASTER_BLOCK) {
-                    return MoveEvaluation(node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, Float.NEGATIVE_INFINITY)
+                    return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, Float.NEGATIVE_INFINITY)
                 }
             }
 
@@ -77,16 +77,19 @@ class BoardEvaluator {
                     }
                 }
 
-                // Search for the best move from the children move nodes
-                var bestMove: MoveEvaluation = moveEvaluations[0]
-                for (moveIndex in 1 until moveEvaluations.size) {
-                    val tempMove = moveEvaluations[moveIndex]
-                    if (bestMove.evaluation < tempMove.evaluation) {
-                        bestMove = tempMove
+                if (childNodes.size > 0) { // Check if there is a move available in this scenario
+                    // Search for the best move from the children move nodes
+                    var bestMove: MoveEvaluation = moveEvaluations[0]
+                    for (moveIndex in 1 until moveEvaluations.size) {
+                        val tempMove = moveEvaluations[moveIndex]
+                        if (bestMove.evaluation < tempMove.evaluation) {
+                            bestMove = tempMove
+                        }
                     }
-                }
 
-                return bestMove
+                    return bestMove
+                }
+                else return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, 0f)
             }
             else { // Calculate the SBE in the maximum depth of the node
                 var evaluation = 0f
@@ -119,7 +122,7 @@ class BoardEvaluator {
                         (Board.HEIGHT - (Board.BLUE_MASTER_BLOCK.y - node.board.redMaster!!.pos.y)) * 10f
                 evaluation += tempEvaluation
 
-                return MoveEvaluation(node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, evaluation)
+                return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, evaluation)
             }
         }
 
@@ -148,39 +151,92 @@ class BoardEvaluator {
 
                     val cardMove = card.possibleMoves[cardMoveIndex] // The move that is going to be taken
 
-                    // Iterate the blocks to find pieces
-                    for (i in newNode.board.blocks.indices) {
-                        for (j in newNode.board.blocks[i].indices) {
-                            val blockPiece = newNode.board.blocks[i][j].piece
+                    // Get the pieces according to the player color
+                    var pieceList = if (playerColor == PlayerColor.RED) node.board.redPieces else node.board.bluePieces
+                    if (playerColor == PlayerColor.RED) // Add the master piece to the list
+                        pieceList.add(node.board.redMaster!!)
+                    else
+                        pieceList.add(node.board.blueMaster!!)
 
-                            // Check whether the block has a piece
-                            if (blockPiece != null) {
-                                // Check whether the piece is the correct player's piece
-                                if (blockPiece.color == playerColor) {
-                                    // Check whether the move is not out of bounds
-                                    if (cardMove.x + j >= 0 && cardMove.x + j < Board.WIDTH &&
-                                            cardMove.y + i >= 0 && cardMove.y + i < Board.HEIGHT) {
-                                        var destinationBlock = newNode.board.blocks[i][j]
+                    // Iterate between pieces to move them
+                    var pieces = if (playerColor == PlayerColor.RED) node.board.redPieces else node.board.bluePieces
+                    var moveModifier = if (playerColor == PlayerColor.RED) 1 else -1
 
-                                        // Check if the destination block has a friendly block
-                                        if (destinationBlock.piece != null && destinationBlock.piece?.color != playerColor) {
-                                            // Move the piece inside the board to the desired location
-                                            newNode.board.movePiece(Coordinate(i, j), cardMove)
+                    for (pieceIndex in pieces.indices) {
+                        var piece = pieces[pieceIndex]
+                        var xPos = piece.pos.x
+                        var yPos = piece.pos.y
+                        val blockPiece = newNode.board.blocks[yPos][xPos].piece
 
-                                            // Switch the card after a move is made
-                                            newNode.switchCard(cardIndex, playerColor)
+                        // Check whether the block has a piece
+                        if (blockPiece != null) {
+                            // Check whether the piece is the correct player's piece
+                            if (blockPiece.color == playerColor) {
+                                var newYPos = cardMove.y * moveModifier + yPos
+                                var newXPos = cardMove.x * moveModifier + xPos
 
-                                            newNode.previousCardUsedIndex = cardIndex
-                                            newNode.previousCardMoveUsedIndex = cardMoveIndex
+                                // Check whether the move is not out of bounds
+                                if (newXPos >= 0 && newXPos < Board.WIDTH &&
+                                    newYPos >= 0 && newYPos < Board.HEIGHT) {
 
-                                            // Add the new board to the list of child nodes
-                                            childNodes.add(newNode)
-                                        }
+                                    var destinationBlock = newNode.board.blocks[newYPos][newXPos]
+
+                                    // Check if the destination block has a friendly block
+                                    if (destinationBlock.piece == null || destinationBlock.piece?.color != playerColor) {
+                                        newNode.originPosition = Coordinate(yPos, xPos) // Set the origin of the piece before moving the piece
+
+                                        // Move the piece inside the board to the desired location
+                                        newNode.board.movePiece(Coordinate(yPos, xPos), Coordinate(newYPos, newXPos))
+
+                                        // Switch the card after a move is made
+                                        newNode.switchCard(cardIndex, playerColor)
+
+                                        newNode.previousCardUsedIndex = cardIndex
+                                        newNode.previousCardMoveUsedIndex = cardMoveIndex
+
+                                        // Add the new board to the list of child nodes
+                                        childNodes.add(newNode)
                                     }
                                 }
                             }
                         }
                     }
+
+                    // Iterate the blocks to find pieces
+//                    for (row in newNode.board.blocks.indices) {
+//                        for (column in newNode.board.blocks[row].indices) {
+//                            val blockPiece = newNode.board.blocks[row][column].piece
+//
+//                            // Check whether the block has a piece
+//                            if (blockPiece != null) {
+//                                // Check whether the piece is the correct player's piece
+//                                if (blockPiece.color == playerColor) {
+//                                    // Check whether the move is not out of bounds
+//                                    if (cardMove.x + column >= 0 && cardMove.x + column < Board.WIDTH &&
+//                                            cardMove.y + row >= 0 && cardMove.y + row < Board.HEIGHT) {
+//                                        var destinationBlock = newNode.board.blocks[row][column]
+//
+//                                        // Check if the destination block has a friendly block
+//                                        if (destinationBlock.piece?.color != playerColor) {
+//                                            newNode.originPosition = Coordinate(row, column) // Set the origin of the piece before moving the piece
+//
+//                                            // Move the piece inside the board to the desired location
+//                                            newNode.board.movePiece(Coordinate(row, column), cardMove)
+//
+//                                            // Switch the card after a move is made
+//                                            newNode.switchCard(cardIndex, playerColor)
+//
+//                                            newNode.previousCardUsedIndex = cardIndex
+//                                            newNode.previousCardMoveUsedIndex = cardMoveIndex
+//
+//                                            // Add the new board to the list of child nodes
+//                                            childNodes.add(newNode)
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
                 }
             }
 

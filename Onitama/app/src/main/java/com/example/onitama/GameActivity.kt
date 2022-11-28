@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
+import com.example.onitama.AI.BoardEvaluator
 import com.example.onitama.components.*
 import java.util.*
 
@@ -251,17 +252,9 @@ class GameActivity : AppCompatActivity() {
      * @param currentTurn Whose piece is being moved.
      */
     private fun movePiece(oldPos: Coordinate, newPos: Coordinate, currentTurn: String) {
-        var eatenPiece = board.movePiece(oldPos, newPos)
+        var movedPiece = board.movePiece(oldPos, newPos)
 
-        // Checks if the target block has an enemy piece
-        if (eatenPiece != null) {
-            if (eatenPiece.type == Piece.MASTER) { // Is the piece being defeated is of type master?
-                if (currentTurn == GameActivity.PLAYER_TURN)
-                    enemyMasterStatus = false
-                else if (currentTurn == GameActivity.ENEMY_TURN)
-                    playerMasterStatus = false
-            }
-        }
+        Log.d("block", board.blocks[newPos.y][newPos.x].piece.toString())
 
         imageBoard[newPos.y][newPos.x].setImageResource(board.blocks[newPos.y][newPos.x].piece!!.img)
 
@@ -315,6 +308,31 @@ class GameActivity : AppCompatActivity() {
             gameStatus = false
             return
         }
+    }
+
+    /**
+     * Switches the turn state of the game.
+     * Called whenever a player has made a move.
+     */
+    fun switchTurn() {
+        turn = if (turn == GameActivity.PLAYER_TURN) GameActivity.ENEMY_TURN else GameActivity.PLAYER_TURN
+    }
+
+    /**
+     * Make the AI thinks which is the best possible move to make in the current board state.
+     * Only be called whenever the red player has made a move or the game state switches to the blue player turn.
+     */
+    private fun moveAI() {
+        val bestMove = BoardEvaluator.evaluate(board, player, enemy, storedCard!!, PlayerColor.BLUE)
+
+        Toast.makeText(this, "Origin: ${bestMove.originPosition.x},${bestMove.originPosition.y}, Card: ${bestMove.cardIndex}, Card Move: ${bestMove.cardMoveIndex}", Toast.LENGTH_SHORT).show()
+
+        var AICardMove = enemy.cards[bestMove.cardIndex].possibleMoves[bestMove.cardMoveIndex] // The AI card move that's going to be used
+        var newPos = Coordinate(bestMove.originPosition.y + AICardMove.y * -1, bestMove.originPosition.x + AICardMove.x * -1)
+
+        movePiece(bestMove.originPosition, newPos, turn)
+
+        switchTurn()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -407,13 +425,18 @@ class GameActivity : AppCompatActivity() {
                            refreshSelection()
 
                            // Switch the turn
-                           turn = if (turn == GameActivity.PLAYER_TURN) GameActivity.ENEMY_TURN else GameActivity.PLAYER_TURN
+                           switchTurn()
 
                            checkWinCondition();
+
+                           if (gameStatus) moveAI() // The AI moves a piece if the game is still going
                        }
                     }
                 }
             }
         }
+
+        // If the first turn is the AI turn, move a piece
+        if (turn == ENEMY_TURN) moveAI()
     }
 }

@@ -130,7 +130,7 @@ class Board(
         var targetBlock = blocks[newPosition.y][newPosition.x]
         var oldBlock = blocks[oldPosition.y][oldPosition.x]
 
-        var targetPiece = blocks[newPosition.y][newPosition.x].piece?.copy()
+        var targetPiece = targetBlock.piece
 
         if (targetPiece != null) {
             if (targetPiece.color == PlayerColor.RED) {
@@ -147,6 +147,10 @@ class Board(
             }
         }
 
+        if (oldBlock.piece == null) {
+            throw Exception("No piece in the block to move")
+        }
+
         // Set the block attributes
         blocks[newPosition.y][newPosition.x] = Block(oldBlock.status, newPosition, oldBlock.occupier, oldBlock.piece)
         blocks[newPosition.y][newPosition.x].piece?.pos = newPosition
@@ -155,6 +159,16 @@ class Board(
         blocks[oldPosition.y][oldPosition.x].status = 0
         blocks[oldPosition.y][oldPosition.x].piece = null
         blocks[oldPosition.y][oldPosition.x].occupier = Block.OCCUPY_NONE
+
+        // Change the piece position attribute
+        if (targetPiece?.color == PlayerColor.RED) {
+            var redPiece= redPieces.find { piece -> piece.pos == targetPiece.pos }
+
+            if (redPiece != null) redPieces[redPieces.indexOf(redPiece)].pos = newPosition
+        }
+        else if (targetPiece?.color == PlayerColor.RED) {
+            bluePieces[bluePieces.indexOf(targetPiece)].pos = newPosition
+        }
 
         return targetPiece
     }

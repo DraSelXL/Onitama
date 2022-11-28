@@ -2,6 +2,7 @@ package com.example.onitama.AI
 
 import com.example.onitama.components.Board
 import com.example.onitama.components.Card
+import com.example.onitama.components.Coordinate
 import com.example.onitama.components.PlayerColor
 
 /**
@@ -14,6 +15,8 @@ data class OnitamaNode(
     var blueCards: Array<Card>,
     var storedCard: Card
 ) {
+    // Variables to store the previous state that has been used to create the current node
+    var originPosition: Coordinate? = null
     var previousCardUsedIndex: Int? = null
     var previousCardMoveUsedIndex: Int? = null
 
