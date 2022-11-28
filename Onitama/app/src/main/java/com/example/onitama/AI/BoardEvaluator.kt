@@ -274,7 +274,7 @@ class BoardEvaluator {
                             val destinationPiece = newNode.board.blocks[newPosition.y][newPosition.x].piece
 
                             // Check whether there's a piece in the destination and is not friendly
-                            if (destinationPiece == null || destinationPiece?.color == playerColor) {
+                            if (destinationPiece == null || destinationPiece?.color != playerColor) {
                                 try {
                                     // Save the position before moving the piece
                                     val originPosition = Coordinate(piece.pos.y, piece.pos.x)
