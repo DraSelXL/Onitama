@@ -192,7 +192,7 @@ class GameActivity : AppCompatActivity() {
     private fun cleanBlock(y: Int, x: Int){
         // board[y][x].setImageResource(R.drawable.plain_bg)
         imageBoard[y][x].setImageResource(0)
-        board.blocks[y][x] = Block(0, Coordinate(y,x))
+        board.blocks[y][x] = Block(Coordinate(y,x))
     }
 
     /**
@@ -330,6 +330,7 @@ class GameActivity : AppCompatActivity() {
         var AICardMove = enemy.cards[bestMove.cardIndex].possibleMoves[bestMove.cardMoveIndex] // The AI card move that's going to be used
         var newPos = Coordinate(bestMove.originPosition.y + AICardMove.y * -1, bestMove.originPosition.x + AICardMove.x * -1)
 
+        selectedCard = bestMove.cardIndex
         movePiece(bestMove.originPosition, newPos, turn)
 
         switchTurn()
@@ -402,7 +403,7 @@ class GameActivity : AppCompatActivity() {
 
 
                     // Select a piece when a piece is being selected from the board
-                    if (selectedCard != -1 && board.blocks[i][j].status != 0 && board.blocks[i][j].occupier == turn) { // Has a card been selected, has a piece on the block, and is the correct piece
+                    if (selectedCard != -1 && board.blocks[i][j].piece != null && board.blocks[i][j].occupier == turn) { // Has a card been selected, has a piece on the block, and is the correct piece
                         // Start highlighting blocks for possible moves and prepare to move the piece
                         selectedBlock = board.blocks[i][j]
                         isSelecting = true
@@ -424,12 +425,14 @@ class GameActivity : AppCompatActivity() {
                            movePiece(oldCoordinate, newCoordinate, turn)
                            refreshSelection()
 
-                           // Switch the turn
-                           switchTurn()
-
                            checkWinCondition();
 
-                           if (gameStatus) moveAI() // The AI moves a piece if the game is still going
+                           if (gameStatus) {
+                               // Switch the turn
+                               switchTurn()
+
+                               moveAI() // The AI moves a piece if the game is still going
+                           }
                        }
                     }
                 }

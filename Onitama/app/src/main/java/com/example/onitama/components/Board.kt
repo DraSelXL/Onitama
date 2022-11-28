@@ -27,7 +27,7 @@ class Board(
      */
     var blocks: Array<Array<Block>> = Array(HEIGHT) {
         y -> Array(WIDTH) {
-            x -> Block(0, Coordinate(y, x))
+            x -> Block(Coordinate(y, x))
         }
     }
 
@@ -42,14 +42,34 @@ class Board(
     var bluePieces: ArrayList<Piece> = arrayListOf()
 
     init {
-        if (board != null) {
-            blocks = board.blocks.clone()
+        if (board != null) { // Check whether a board argument is supplied to perform a deep copy
+            // Deep copy the argument's blocks values
+            for (row in board.blocks.indices) {
+                for (column in board.blocks[row].indices) {
+                    blocks[row][column].occupier = board.blocks[row][column].occupier
+                    blocks[row][column].pos = board.blocks[row][column].pos.copy()
+                    blocks[row][column].piece = board.blocks[row][column].piece?.copy()
+                }
+            }
 
-            redMaster = board.redMaster
-            redPieces = board.redPieces
+            // Deep copy the argument's pieces values
+            redMaster = Piece(board.redMaster!!.type, board.redMaster!!.img, board.redMaster!!.color)
+            redMaster!!.pos = Coordinate(board.redMaster!!.pos.y, board.redMaster!!.pos.x)
+            for (i in board.redPieces.indices) {
+                val oldPiece = board.redPieces[i]
+                val newPiece = Piece(oldPiece.type, oldPiece.img, oldPiece.color)
+                newPiece.pos = Coordinate(oldPiece.pos.y, oldPiece.pos.x)
+                redPieces.add(newPiece)
+            }
 
-            blueMaster = board.blueMaster
-            bluePieces = board.bluePieces
+            blueMaster = Piece(board.blueMaster!!.type, board.blueMaster!!.img, board.blueMaster!!.color)
+            blueMaster!!.pos = Coordinate(board.blueMaster!!.pos.y, board.blueMaster!!.pos.x)
+            for (i in board.bluePieces.indices) {
+                val oldPiece = board.bluePieces[i]
+                val newPiece = Piece(oldPiece.type, oldPiece.img, oldPiece.color)
+                newPiece.pos = Coordinate(oldPiece.pos.y, oldPiece.pos.x)
+                bluePieces.add(newPiece)
+            }
         }
         else {
             refresh()
@@ -70,7 +90,6 @@ class Board(
         for (row in 0 until Board.HEIGHT) {
             for (column in 0 until Board.WIDTH) {
                 if (row == Board.BLUE_MASTER_BLOCK.y) { // Is the current row the enemy's?
-                    blocks[row][column].status = 1
 
                     if (column != Board.BLUE_MASTER_BLOCK.x) { // Is the current column not the master's column?
                         blocks[row][column].occupier = Block.OCCUPY_ENEMY
@@ -92,8 +111,6 @@ class Board(
                     }
                 }
                 else if (row == Board.RED_MASTER_BLOCK.y) { // Is the current row the player's row?
-                    blocks[row][column].status = 1
-
                     if (column != Board.RED_MASTER_BLOCK.x) { // Is the current row not the master's column?
                         blocks[row][column].occupier = Block.OCCUPY_PLAYER
 
@@ -114,7 +131,6 @@ class Board(
                     }
                 }
                 else { // Sets the current block as an empty block
-                    blocks[row][column].status = 0
                     blocks[row][column].occupier = Block.OCCUPY_NONE
                     blocks[row][column].piece = null
                 }
@@ -125,6 +141,10 @@ class Board(
     /**
      * Moves a piece within the board to the desired location.
      * If for some reason the target block to move the piece does not have a piece, throws an error.
+     *
+     * @param oldPosition The position of the piece that is going to be moved.
+     * @param newPosition The position of the target coordinate to move the piece.
+     * @return The piece that has been eaten.
      */
     fun movePiece(oldPosition: Coordinate, newPosition: Coordinate): Piece? {
         var targetBlock = blocks[newPosition.y][newPosition.x]
@@ -133,6 +153,10 @@ class Board(
         var targetPiece = targetBlock.piece
 
         if (targetPiece != null) {
+            // Perform a deep copy of the gonna be eaten Piece
+            targetPiece = Piece(targetPiece.type, targetPiece.img, targetPiece.color)
+            targetPiece.pos = newPosition
+
             if (targetPiece.color == PlayerColor.RED) {
                 if (targetPiece.type == Piece.PAWN) {
                     redPieces.remove(targetPiece)
@@ -148,26 +172,27 @@ class Board(
         }
 
         if (oldBlock.piece == null) {
-            throw Exception("No piece in the block to move")
+            throw Exception("No piece in the block to move.")
         }
 
         // Set the block attributes
-        blocks[newPosition.y][newPosition.x] = Block(oldBlock.status, newPosition, oldBlock.occupier, oldBlock.piece)
-        blocks[newPosition.y][newPosition.x].piece?.pos = newPosition
+        blocks[newPosition.y][newPosition.x] = Block(newPosition, oldBlock.occupier, oldBlock.piece)
+        blocks[newPosition.y][newPosition.x].piece!!.pos = newPosition
 
         // Reset the old block
-        blocks[oldPosition.y][oldPosition.x].status = 0
         blocks[oldPosition.y][oldPosition.x].piece = null
         blocks[oldPosition.y][oldPosition.x].occupier = Block.OCCUPY_NONE
 
         // Change the piece position attribute
         if (targetPiece?.color == PlayerColor.RED) {
-            var redPiece= redPieces.find { piece -> piece.pos == targetPiece.pos }
+            var redPiece = redPieces.find { piece -> piece.pos.x == oldBlock.pos.x && piece.pos.y == oldBlock.pos.y }
 
             if (redPiece != null) redPieces[redPieces.indexOf(redPiece)].pos = newPosition
         }
         else if (targetPiece?.color == PlayerColor.RED) {
-            bluePieces[bluePieces.indexOf(targetPiece)].pos = newPosition
+            var bluePiece = bluePieces.find { piece -> piece.pos.x == oldBlock.pos.x && piece.pos.y == oldBlock.pos.y }
+
+            if (bluePiece != null) bluePieces[bluePieces.indexOf(targetPiece)].pos = newPosition
         }
 
         return targetPiece
