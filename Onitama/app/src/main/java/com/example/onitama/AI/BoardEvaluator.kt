@@ -8,7 +8,7 @@ import kotlin.math.abs
  */
 class BoardEvaluator {
     companion object {
-        var MAX_PLY = 1 // The maximum ply for the AI to compute
+        var MAX_PLY = 2 // The maximum ply for the AI to compute
 
         /**
          * Start evaluating the available moves to determine the best move the player should take next.
@@ -40,46 +40,8 @@ class BoardEvaluator {
          */
         private fun nextPly(depth: Int, node: OnitamaNode, playerColor: String, originalColor: String): MoveEvaluation {
             // Stop the iteration when a loss or win condition is met
-            if (originalColor == PlayerColor.BLUE) {
-                if (node.board.redMaster == null ||
-                    (node.board.blueMaster?.pos == Board.RED_MASTER_BLOCK)) {
-                    return MoveEvaluation(
-                        node.originPosition!!,
-                        node.previousCardUsedIndex!!,
-                        node.previousCardMoveUsedIndex!!,
-                        Float.POSITIVE_INFINITY
-                    )
-                }
-                else if (node.board.blueMaster == null ||
-                    (node.board.redMaster?.pos == Board.BLUE_MASTER_BLOCK)) {
-                    return MoveEvaluation(
-                        node.originPosition!!,
-                        node.previousCardUsedIndex!!,
-                        node.previousCardMoveUsedIndex!!,
-                        Float.NEGATIVE_INFINITY
-                    )
-                }
-            }
-            else if (originalColor == PlayerColor.RED) {
-                if (node.board.blueMaster == null ||
-                    (node.board.redMaster?.pos == Board.BLUE_MASTER_BLOCK)) {
-                    return MoveEvaluation(
-                        node.originPosition!!,
-                        node.previousCardUsedIndex!!,
-                        node.previousCardMoveUsedIndex!!,
-                        Float.POSITIVE_INFINITY
-                    )
-                }
-                else if (node.board.redMaster == null ||
-                        node.board.blueMaster?.pos == Board.RED_MASTER_BLOCK) {
-                    return MoveEvaluation(
-                        node.originPosition!!,
-                        node.previousCardUsedIndex!!,
-                        node.previousCardMoveUsedIndex!!,
-                        Float.NEGATIVE_INFINITY
-                    )
-                }
-            }
+            val winEval = checkWinLossCondition(node, originalColor)
+            if (winEval != null) return winEval
 
             if (depth < MAX_PLY) { // Generate child node and go to the next ply
                 var childNodes = generateChildNodes(node, node.redCards, node.blueCards, node.storedCard, playerColor)
@@ -87,12 +49,12 @@ class BoardEvaluator {
                 var moveEvaluations = arrayListOf<MoveEvaluation>()
                 if (playerColor == PlayerColor.RED) {
                     for (child in childNodes) {
-                        moveEvaluations.add(nextPly(depth+1, child, PlayerColor.BLUE, playerColor))
+                        moveEvaluations.add(nextPly(depth+1, child, PlayerColor.BLUE, originalColor))
                     }
                 }
                 else {
                     for (child in childNodes) {
-                        moveEvaluations.add(nextPly(depth+1, child, PlayerColor.RED, playerColor))
+                        moveEvaluations.add(nextPly(depth+1, child, PlayerColor.RED, originalColor))
                     }
                 }
 
@@ -106,87 +68,49 @@ class BoardEvaluator {
                         }
                     }
 
-                    return bestMove
+                    if (node.originPosition == null)
+                        return MoveEvaluation(bestMove.originPosition!!, bestMove.cardIndex, bestMove.cardMoveIndex, bestMove.evaluation)
+                    else
+                        return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, bestMove.evaluation)
                 }
                 else return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, 0f)
             }
             else { // Calculate the SBE in the maximum depth of the node
-                // Check for a win or loss condition first
-                if (originalColor == PlayerColor.BLUE) { // Win/Loss condition for the blue player
-                    // If the red player master has been eaten or their temple occupied by blue master, is a win condition
-                    if (node.board.redMaster == null ||
-                        (node.board.blueMaster?.pos == Board.RED_MASTER_BLOCK)) {
-                        return MoveEvaluation(
-                            node.originPosition!!,
-                            node.previousCardUsedIndex!!,
-                            node.previousCardMoveUsedIndex!!,
-                            Float.POSITIVE_INFINITY
-                        )
-                    }
-                    // If the blue player master has been eaten or blue temple occupied by red master, is a loss condition
-                    else if (node.board.blueMaster == null ||
-                        (node.board.redMaster?.pos == Board.BLUE_MASTER_BLOCK)) {
-                        return MoveEvaluation(
-                            node.originPosition!!,
-                            node.previousCardUsedIndex!!,
-                            node.previousCardMoveUsedIndex!!,
-                            Float.NEGATIVE_INFINITY
-                        )
-                    }
-                }
-                else { // Win/Loss condition for the red player
-                    // If the red player master has been eaten, is a loss condition
-                    if (node.board.blueMaster == null ||
-                        (node.board.redMaster?.pos == Board.BLUE_MASTER_BLOCK)) {
-                        return MoveEvaluation(
-                            node.originPosition!!,
-                            node.previousCardUsedIndex!!,
-                            node.previousCardMoveUsedIndex!!,
-                            Float.POSITIVE_INFINITY
-                        )
-                    }
-                    // If the blue player master has been eaten, is a win condition
-                    else if (node.board.redMaster == null ||
-                        node.board.blueMaster?.pos == Board.RED_MASTER_BLOCK) {
-                        return MoveEvaluation(
-                            node.originPosition!!,
-                            node.previousCardUsedIndex!!,
-                            node.previousCardMoveUsedIndex!!,
-                            Float.NEGATIVE_INFINITY
-                        )
-                    }
-                }
+                // Check for a win/loss condition
+                val winLossEval = checkWinLossCondition(node, originalColor)
+                if (winLossEval != null) return winLossEval
 
+                // Start the SBE
                 var evaluation = 0f
+                var evalModifier = if (originalColor == PlayerColor.RED) 1 else -1 // If the original color is from red player, make the eval positive for the red player
 
                 // The closer to the enemy's master piece, the better.
-                var tempEvaluation = 0f;
-                for (piece in node.board.bluePieces) {
-                    tempEvaluation += Board.WIDTH - abs((piece.pos.x - node.board.redMaster!!.pos.x))
-                    tempEvaluation += Board.HEIGHT - abs(piece.pos.y - node.board.redMaster!!.pos.y)
+                var tempEval = 0f
+                for (bluePiece in node.board.bluePieces) {
+                    tempEval += (Board.WIDTH-1) - abs(node.board.redMaster!!.pos.x - bluePiece.pos.x)
+                    tempEval += (Board.HEIGHT-1) - abs(node.board.redMaster!!.pos.y - bluePiece.pos.y)
                 }
-                tempEvaluation *= 11
-                evaluation += tempEvaluation
-
-                // The closer the enemy's pieces is to your master, the worse.
-                tempEvaluation = 0f
-                for (piece in node.board.redPieces) {
-                    tempEvaluation -= Board.WIDTH - abs(piece.pos.x - node.board.blueMaster!!.pos.x)
-                    tempEvaluation -= Board.HEIGHT - abs(piece.pos.y - node.board.blueMaster!!.pos.y)
-                }
-                tempEvaluation *= 11
-                evaluation += tempEvaluation
+                evaluation += ((tempEval * evalModifier * -1) * 11)
 
                 // The closer your master to the enemy's temple, the better.
-                tempEvaluation = (Board.WIDTH - (Board.RED_MASTER_BLOCK.x - node.board.blueMaster!!.pos.x)) +
-                        (Board.HEIGHT - (Board.RED_MASTER_BLOCK.y - node.board.blueMaster!!.pos.y)) * 10f
-                evaluation += tempEvaluation
+                tempEval = ((Board.WIDTH-1) - abs(node.board.blueMaster!!.pos.x - Board.RED_MASTER_BLOCK.x)).toFloat()
+                tempEval += ((Board.HEIGHT-1) - abs(node.board.blueMaster!!.pos.y - Board.RED_MASTER_BLOCK.y)).toFloat()
+                evaluation += ((tempEval * evalModifier * -1) * 10)
 
-                // The closer the enemy's master is to your temple, the worse.
-                tempEvaluation = (Board.WIDTH - (Board.BLUE_MASTER_BLOCK.x - node.board.redMaster!!.pos.x)) +
-                        (Board.HEIGHT - (Board.BLUE_MASTER_BLOCK.y - node.board.redMaster!!.pos.y)) * 10f
-                evaluation += tempEvaluation
+                // The closer to your master piece, the worse.
+                tempEval = 0f
+                for (redPiece in node.board.redPieces) {
+                    tempEval += (Board.WIDTH-1) - abs(node.board.blueMaster!!.pos.x - redPiece.pos.x)
+                    tempEval += (Board.HEIGHT-1) - abs(node.board.blueMaster!!.pos.y - redPiece.pos.y)
+                }
+                evaluation += ((tempEval * evalModifier) * 11)
 
+                // The closer your master to the enemy's temple, the better.
+                tempEval = ((Board.WIDTH-1) - abs(node.board.redMaster!!.pos.x - Board.BLUE_MASTER_BLOCK.x)).toFloat()
+                tempEval += ((Board.HEIGHT-1) - abs(node.board.redMaster!!.pos.y - Board.BLUE_MASTER_BLOCK.y)).toFloat()
+                evaluation += ((tempEval * evalModifier) * 10)
+
+                // Return the evaluation result
                 return MoveEvaluation(
                     node.originPosition!!,
                     node.previousCardUsedIndex!!,
@@ -221,7 +145,13 @@ class BoardEvaluator {
                     val cardMove = Coordinate(card.possibleMoves[cardMoveIndex].y, card.possibleMoves[cardMoveIndex].x)
 
                     // Get the piece list to move
-                    val pieceList = if (playerColor == PlayerColor.RED) node.board.redPieces else node.board.bluePieces
+                    var tempPieceList = if (playerColor == PlayerColor.RED) node.board.redPieces else node.board.bluePieces
+
+                    // Shallow copy the list to avoid mutating referenced array list
+                    val pieceList = arrayListOf<Piece>()
+                    for (piece in tempPieceList) {
+                        pieceList.add(piece)
+                    }
 
                     // Add the master piece to the list
                     if (playerColor == PlayerColor.RED) pieceList.add(node.board.redMaster!!)
@@ -280,7 +210,7 @@ class BoardEvaluator {
                                     val originPosition = Coordinate(piece.pos.y, piece.pos.x)
 
                                     // Move the piece
-                                    newNode.board.movePiece(piece.pos, newPosition)
+                                    newNode.board.movePiece(originPosition, newPosition)
 
                                     // Attach the saved origin position to the node
                                     newNode.originPosition = originPosition
@@ -304,111 +234,65 @@ class BoardEvaluator {
                 }
             }
 
-//            // Generate the child nodes from each card
-//            for (cardIndex in cards.indices) {
-//                val card = cards[cardIndex]
-//
-//                // Generate the child nodes from each possible moves in the card
-//                for (cardMoveIndex in card.possibleMoves.indices) {
-//                    val newNode = OnitamaNode(Board(node.board), redCards, blueCards, storedCard)
-//
-//                    val cardMove = card.possibleMoves[cardMoveIndex] // The move that is going to be taken
-//
-//                    // Get the pieces according to the player color
-//                    var pieceList = if (playerColor == PlayerColor.RED) node.board.redPieces else node.board.bluePieces
-//                    if (playerColor == PlayerColor.RED) // Add the master piece to the list
-//                        pieceList.add(node.board.redMaster!!)
-//                    else
-//                        pieceList.add(node.board.blueMaster!!)
-//
-//                    // Iterate between pieces to move them
-//                    var pieces = if (playerColor == PlayerColor.RED) node.board.redPieces else node.board.bluePieces
-//                    var moveModifier = if (playerColor == PlayerColor.RED) 1 else -1
-//
-//                    for (pieceIndex in pieces.indices) {
-//                        var piece = pieces[pieceIndex]
-//                        var xPos = piece.pos.x
-//                        var yPos = piece.pos.y
-//                        val blockPiece = newNode.board.blocks[yPos][xPos].piece
-//
-//                        // Check whether the block has a piece
-//                        if (blockPiece != null) {
-//                            // Check whether the piece is the correct player's piece
-//                            if (blockPiece.color == playerColor) {
-//                                var newYPos = cardMove.y * moveModifier + yPos
-//                                var newXPos = cardMove.x * moveModifier + xPos
-//
-//                                // Check whether the move is not out of bounds
-//                                if (newXPos >= 0 && newXPos < Board.WIDTH &&
-//                                    newYPos >= 0 && newYPos < Board.HEIGHT) {
-//
-//                                    var destinationBlock = newNode.board.blocks[newYPos][newXPos]
-//
-//                                    // Check if the destination block has a friendly block
-//                                    if (destinationBlock.piece == null || destinationBlock.piece!!.color != playerColor) {
-//                                        newNode.originPosition = Coordinate(yPos, xPos) // Set the origin of the piece before moving the piece
-//
-//                                        // Move the piece inside the board to the desired location
-//                                        try {
-//                                            newNode.board.movePiece(Coordinate(yPos, xPos), Coordinate(newYPos, newXPos))
-//                                        }
-//                                        catch (e: Exception) {
-//                                            continue
-//                                        }
-//
-//                                        // Switch the card after a move is made
-//                                        newNode.switchCard(cardIndex, playerColor)
-//
-//                                        newNode.previousCardUsedIndex = cardIndex
-//                                        newNode.previousCardMoveUsedIndex = cardMoveIndex
-//
-//                                        // Add the new board to the list of child nodes
-//                                        childNodes.add(newNode)
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-
-                    // Iterate the blocks to find pieces
-//                    for (row in newNode.board.blocks.indices) {
-//                        for (column in newNode.board.blocks[row].indices) {
-//                            val blockPiece = newNode.board.blocks[row][column].piece
-//
-//                            // Check whether the block has a piece
-//                            if (blockPiece != null) {
-//                                // Check whether the piece is the correct player's piece
-//                                if (blockPiece.color == playerColor) {
-//                                    // Check whether the move is not out of bounds
-//                                    if (cardMove.x + column >= 0 && cardMove.x + column < Board.WIDTH &&
-//                                            cardMove.y + row >= 0 && cardMove.y + row < Board.HEIGHT) {
-//                                        var destinationBlock = newNode.board.blocks[row][column]
-//
-//                                        // Check if the destination block has a friendly block
-//                                        if (destinationBlock.piece?.color != playerColor) {
-//                                            newNode.originPosition = Coordinate(row, column) // Set the origin of the piece before moving the piece
-//
-//                                            // Move the piece inside the board to the desired location
-//                                            newNode.board.movePiece(Coordinate(row, column), cardMove)
-//
-//                                            // Switch the card after a move is made
-//                                            newNode.switchCard(cardIndex, playerColor)
-//
-//                                            newNode.previousCardUsedIndex = cardIndex
-//                                            newNode.previousCardMoveUsedIndex = cardMoveIndex
-//
-//                                            // Add the new board to the list of child nodes
-//                                            childNodes.add(newNode)
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-
             return childNodes
+        }
+
+        /**
+         * Checks for a win or a loss condition while iterating the ply.
+         *
+         * @param node The node of the state of the game that is going to be examined.
+         * @param originalColor The color of the player who's called the AI's evaluate function.
+         * @return Null if a condition is not met, A move evaluation otherwise.
+         */
+        private fun checkWinLossCondition(node: OnitamaNode, originalColor: String): MoveEvaluation? {
+            // Check for a win or loss condition first
+            if (originalColor == PlayerColor.BLUE) { // Win/Loss condition for the blue player
+                // If the red player master has been eaten or their temple occupied by blue master, is a win condition
+                if (node.board.redMaster == null ||
+                    (node.board.blueMaster?.pos == Board.RED_MASTER_BLOCK)) {
+                    return MoveEvaluation(
+                        node.originPosition!!,
+                        node.previousCardUsedIndex!!,
+                        node.previousCardMoveUsedIndex!!,
+                        Float.POSITIVE_INFINITY
+                    )
+                }
+                // If the blue player master has been eaten or blue temple occupied by red master, is a loss condition
+                else if (node.board.blueMaster == null ||
+                    (node.board.redMaster?.pos == Board.BLUE_MASTER_BLOCK)) {
+                    return MoveEvaluation(
+                        node.originPosition!!,
+                        node.previousCardUsedIndex!!,
+                        node.previousCardMoveUsedIndex!!,
+                        Float.NEGATIVE_INFINITY
+                    )
+                }
+            }
+            else { // Win/Loss condition for the red player
+                // If the red player master has been eaten, is a loss condition
+                if (node.board.blueMaster == null ||
+                    (node.board.redMaster?.pos == Board.BLUE_MASTER_BLOCK)) {
+                    return MoveEvaluation(
+                        node.originPosition!!,
+                        node.previousCardUsedIndex!!,
+                        node.previousCardMoveUsedIndex!!,
+                        Float.POSITIVE_INFINITY
+                    )
+                }
+                // If the blue player master has been eaten, is a win condition
+                else if (node.board.redMaster == null ||
+                    node.board.blueMaster?.pos == Board.RED_MASTER_BLOCK) {
+                    return MoveEvaluation(
+                        node.originPosition!!,
+                        node.previousCardUsedIndex!!,
+                        node.previousCardMoveUsedIndex!!,
+                        Float.NEGATIVE_INFINITY
+                    )
+                }
+            }
+
+            // A win/loss condition is not met
+            return null
         }
     }
 }

@@ -53,8 +53,10 @@ class Board(
             }
 
             // Deep copy the argument's pieces values
-            redMaster = Piece(board.redMaster!!.type, board.redMaster!!.img, board.redMaster!!.color)
-            redMaster!!.pos = Coordinate(board.redMaster!!.pos.y, board.redMaster!!.pos.x)
+            if (board.redMaster != null) {
+                redMaster = Piece(board.redMaster!!.type, board.redMaster!!.img, board.redMaster!!.color)
+                redMaster!!.pos = Coordinate(board.redMaster!!.pos.y, board.redMaster!!.pos.x)
+            }
             for (i in board.redPieces.indices) {
                 val oldPiece = board.redPieces[i]
                 val newPiece = Piece(oldPiece.type, oldPiece.img, oldPiece.color)
@@ -62,8 +64,10 @@ class Board(
                 redPieces.add(newPiece)
             }
 
-            blueMaster = Piece(board.blueMaster!!.type, board.blueMaster!!.img, board.blueMaster!!.color)
-            blueMaster!!.pos = Coordinate(board.blueMaster!!.pos.y, board.blueMaster!!.pos.x)
+            if (board.blueMaster != null) {
+                blueMaster = Piece(board.blueMaster!!.type, board.blueMaster!!.img, board.blueMaster!!.color)
+                blueMaster!!.pos = Coordinate(board.blueMaster!!.pos.y, board.blueMaster!!.pos.x)
+            }
             for (i in board.bluePieces.indices) {
                 val oldPiece = board.bluePieces[i]
                 val newPiece = Piece(oldPiece.type, oldPiece.img, oldPiece.color)
@@ -176,8 +180,8 @@ class Board(
         }
 
         // Set the block attributes
-        blocks[newPosition.y][newPosition.x] = Block(newPosition, oldBlock.occupier, oldBlock.piece)
-        blocks[newPosition.y][newPosition.x].piece!!.pos = newPosition
+        blocks[newPosition.y][newPosition.x] = Block(Coordinate(newPosition.y, newPosition.x), oldBlock.occupier, oldBlock.piece)
+        blocks[newPosition.y][newPosition.x].piece!!.pos = Coordinate(newPosition.y, newPosition.x)
 
         // Reset the old block
         blocks[oldPosition.y][oldPosition.x].piece = null
@@ -187,12 +191,12 @@ class Board(
         if (targetPiece?.color == PlayerColor.RED) {
             var redPiece = redPieces.find { piece -> piece.pos.x == oldBlock.pos.x && piece.pos.y == oldBlock.pos.y }
 
-            if (redPiece != null) redPieces[redPieces.indexOf(redPiece)].pos = newPosition
+            if (redPiece != null) redPieces[redPieces.indexOf(redPiece)].pos = Coordinate(newPosition.y, newPosition.x)
         }
         else if (targetPiece?.color == PlayerColor.RED) {
             var bluePiece = bluePieces.find { piece -> piece.pos.x == oldBlock.pos.x && piece.pos.y == oldBlock.pos.y }
 
-            if (bluePiece != null) bluePieces[bluePieces.indexOf(targetPiece)].pos = newPosition
+            if (bluePiece != null) bluePieces[bluePieces.indexOf(targetPiece)].pos = Coordinate(newPosition.y, newPosition.x)
         }
 
         return targetPiece

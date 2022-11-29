@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import com.example.onitama.AI.BoardEvaluator
 import com.example.onitama.components.*
+import kotlinx.coroutines.selects.select
 import java.util.*
 
 class GameActivity : AppCompatActivity() {
@@ -254,8 +255,6 @@ class GameActivity : AppCompatActivity() {
     private fun movePiece(oldPos: Coordinate, newPos: Coordinate, currentTurn: String) {
         var movedPiece = board.movePiece(oldPos, newPos)
 
-        Log.d("block", board.blocks[newPos.y][newPos.x].piece.toString())
-
         imageBoard[newPos.y][newPos.x].setImageResource(board.blocks[newPos.y][newPos.x].piece!!.img)
 
         // Whose turn currently is moving the piece and replace the cards accordingly
@@ -332,6 +331,7 @@ class GameActivity : AppCompatActivity() {
 
         selectedCard = bestMove.cardIndex
         movePiece(bestMove.originPosition, newPos, turn)
+        selectedCard = -1
 
         switchTurn()
     }
@@ -432,6 +432,8 @@ class GameActivity : AppCompatActivity() {
                                switchTurn()
 
                                moveAI() // The AI moves a piece if the game is still going
+
+                               checkWinCondition()
                            }
                        }
                     }
