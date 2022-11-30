@@ -6,5 +6,7 @@ class MoveEvaluation(
     var originPosition: Coordinate,
     var cardIndex: Int,
     var cardMoveIndex: Int,
-    var evaluation: Float
+    var evaluation: Float,
+    var alpha: Double,
+    var beta: Double
 )

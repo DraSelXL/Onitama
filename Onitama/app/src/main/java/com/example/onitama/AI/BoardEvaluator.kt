@@ -1,14 +1,17 @@
 package com.example.onitama.AI
 
+import android.util.Log
 import com.example.onitama.components.*
 import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * A class that holds static evaluation functions to determine a player's advantage over the other.
  */
 class BoardEvaluator {
     companion object {
-        var MAX_PLY = 2 // The maximum ply for the AI to compute
+        var MAX_PLY = 4 // The maximum ply for the AI to compute
 
         /**
          * Start evaluating the available moves to determine the best move the player should take next.
@@ -25,7 +28,9 @@ class BoardEvaluator {
         fun evaluate(board: Board, player: Player, enemy: Player, storedCard: Card, playerColor: String): MoveEvaluation {
             val rootNode = OnitamaNode(Board(board), player.cards, enemy.cards, storedCard) // Create a new node with a duplicate Board
 
-            val bestMove = nextPly(0, rootNode, playerColor, playerColor)
+            var beta = Double.POSITIVE_INFINITY
+            var alpha = Double.NEGATIVE_INFINITY
+            val bestMove = nextPly(0, rootNode, playerColor, playerColor, alpha, beta)
 
             return bestMove
         }
@@ -38,27 +43,49 @@ class BoardEvaluator {
          * @param playerColor The player's turn to play the game.
          * @param originalColor The original player's turn that called the evaluation function.
          */
-        private fun nextPly(depth: Int, node: OnitamaNode, playerColor: String, originalColor: String): MoveEvaluation {
+        private fun nextPly(depth: Int, node: OnitamaNode, playerColor: String, originalColor: String, alpha: Double, beta: Double): MoveEvaluation {
             // Stop the iteration when a loss or win condition is met
-            val winEval = checkWinLossCondition(node, originalColor)
+            val winEval = checkWinLossCondition(node, originalColor, alpha, beta)
             if (winEval != null) return winEval
 
             if (depth < MAX_PLY) { // Generate child node and go to the next ply
                 var childNodes = generateChildNodes(node, node.redCards, node.blueCards, node.storedCard, playerColor)
 
                 var moveEvaluations = arrayListOf<MoveEvaluation>()
-                if (playerColor == PlayerColor.RED) {
+                if (playerColor == PlayerColor.RED) { //player (minimizing)
+                    var childBeta = beta
+                    var childAlpha = alpha
                     for (child in childNodes) {
-                        moveEvaluations.add(nextPly(depth+1, child, PlayerColor.BLUE, originalColor))
+                        var next = nextPly(depth+1, child, PlayerColor.BLUE, originalColor, childAlpha, childBeta)
+                        childBeta = min(childBeta, next.evaluation.toDouble())
+                        Log.d("alpha", "alpha: ${childAlpha}")
+                        Log.d("beta", "beta: ${childBeta}")
+
+                        if(childBeta <= childAlpha){
+                            Log.d("Prune", "prune")
+                            break
+                        }
+                        moveEvaluations.add(next)
                     }
                 }
-                else {
+                else { //AI (maximizing)
+                    var childBeta = beta
+                    var childAlpha = alpha
                     for (child in childNodes) {
-                        moveEvaluations.add(nextPly(depth+1, child, PlayerColor.RED, originalColor))
+                        var next = nextPly(depth+1, child, PlayerColor.RED, originalColor, childAlpha, childBeta)
+                        childAlpha = max(childAlpha, next.evaluation.toDouble())
+                        Log.d("alpha", "alpha: ${childAlpha}")
+                        Log.d("beta", "beta: ${childBeta}")
+
+                        if(childBeta <= childAlpha){
+                            Log.d("Prune", "prune")
+                            break
+                        }
+                        moveEvaluations.add(next)
                     }
                 }
 
-                if (childNodes.size > 0) { // Check if there is a move available in this scenario
+                if (moveEvaluations.size > 0) { // Check if there is a move available in this scenario
                     // Search for the best move from the children move nodes
                     var bestMove: MoveEvaluation = moveEvaluations[0]
                     for (moveIndex in 1 until moveEvaluations.size) {
@@ -69,15 +96,15 @@ class BoardEvaluator {
                     }
 
                     if (node.originPosition == null)
-                        return MoveEvaluation(bestMove.originPosition!!, bestMove.cardIndex, bestMove.cardMoveIndex, bestMove.evaluation)
+                        return MoveEvaluation(bestMove.originPosition!!, bestMove.cardIndex, bestMove.cardMoveIndex, bestMove.evaluation, alpha, beta)
                     else
-                        return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, bestMove.evaluation)
+                        return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, bestMove.evaluation, alpha, beta)
                 }
-                else return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, 0f)
+                else return MoveEvaluation(node.originPosition!!, node.previousCardUsedIndex!!, node.previousCardMoveUsedIndex!!, 0f, alpha, beta)
             }
             else { // Calculate the SBE in the maximum depth of the node
                 // Check for a win/loss condition
-                val winLossEval = checkWinLossCondition(node, originalColor)
+                val winLossEval = checkWinLossCondition(node, originalColor, alpha, beta)
                 if (winLossEval != null) return winLossEval
 
                 // Start the SBE
@@ -90,7 +117,32 @@ class BoardEvaluator {
                     tempEval += (Board.WIDTH-1) - abs(node.board.redMaster!!.pos.x - bluePiece.pos.x)
                     tempEval += (Board.HEIGHT-1) - abs(node.board.redMaster!!.pos.y - bluePiece.pos.y)
                 }
-                evaluation += ((tempEval * evalModifier * -1) * 11)
+                evaluation += ((tempEval * evalModifier * -1) * 20)
+
+                //if a piece can reach the enemy's master piece
+                tempEval = 0f
+                for (bluePiece in node.board.bluePieces) {
+                    tempEval += abs(node.board.redMaster!!.pos.x - bluePiece.pos.x)
+                    tempEval += abs(node.board.redMaster!!.pos.y - bluePiece.pos.y)
+                }
+                if(tempEval == 2f){
+                    if(evalModifier==1){
+                        evaluation = Float.NEGATIVE_INFINITY
+                    }
+                    else{
+                        evaluation = Float.POSITIVE_INFINITY
+                    }
+                }
+
+                //the closer to an enemy piece
+                tempEval = 0f
+                for (bluePiece in node.board.bluePieces) {
+                    for (redPiece in node.board.redPieces) {
+                        tempEval += (Board.WIDTH-1) - abs(bluePiece.pos.x - redPiece.pos.x)
+                        tempEval += (Board.HEIGHT-1) - abs(bluePiece.pos.y - redPiece.pos.y)
+                    }
+                }
+                evaluation += ((tempEval * evalModifier * -1) * 10)
 
                 // The closer your master to the enemy's temple, the better.
                 tempEval = ((Board.WIDTH-1) - abs(node.board.blueMaster!!.pos.x - Board.RED_MASTER_BLOCK.x)).toFloat()
@@ -103,19 +155,36 @@ class BoardEvaluator {
                     tempEval += (Board.WIDTH-1) - abs(node.board.blueMaster!!.pos.x - redPiece.pos.x)
                     tempEval += (Board.HEIGHT-1) - abs(node.board.blueMaster!!.pos.y - redPiece.pos.y)
                 }
-                evaluation += ((tempEval * evalModifier) * 11)
+                evaluation += ((tempEval * evalModifier) * 15)
+
+                //if the enemy piece can reach our master piece
+                tempEval = 0f
+                for (bluePiece in node.board.redPieces) {
+                    tempEval += abs(node.board.blueMaster!!.pos.x - bluePiece.pos.x)
+                    tempEval += abs(node.board.blueMaster!!.pos.y - bluePiece.pos.y)
+                }
+                if(tempEval == 2f){
+                    if(evalModifier==1){
+                        evaluation = Float.POSITIVE_INFINITY
+                    }
+                    else{
+                        evaluation = Float.NEGATIVE_INFINITY
+                    }
+                }
 
                 // The closer your master to the enemy's temple, the better.
                 tempEval = ((Board.WIDTH-1) - abs(node.board.redMaster!!.pos.x - Board.BLUE_MASTER_BLOCK.x)).toFloat()
                 tempEval += ((Board.HEIGHT-1) - abs(node.board.redMaster!!.pos.y - Board.BLUE_MASTER_BLOCK.y)).toFloat()
-                evaluation += ((tempEval * evalModifier) * 10)
+                evaluation += ((tempEval * evalModifier) * 8)
 
                 // Return the evaluation result
                 return MoveEvaluation(
                     node.originPosition!!,
                     node.previousCardUsedIndex!!,
                     node.previousCardMoveUsedIndex!!,
-                    evaluation
+                    evaluation,
+                    alpha,
+                    beta
                 )
             }
         }
@@ -244,7 +313,7 @@ class BoardEvaluator {
          * @param originalColor The color of the player who's called the AI's evaluate function.
          * @return Null if a condition is not met, A move evaluation otherwise.
          */
-        private fun checkWinLossCondition(node: OnitamaNode, originalColor: String): MoveEvaluation? {
+        private fun checkWinLossCondition(node: OnitamaNode, originalColor: String, alpha: Double, beta: Double): MoveEvaluation? {
             // Check for a win or loss condition first
             if (originalColor == PlayerColor.BLUE) { // Win/Loss condition for the blue player
                 // If the red player master has been eaten or their temple occupied by blue master, is a win condition
@@ -254,7 +323,9 @@ class BoardEvaluator {
                         node.originPosition!!,
                         node.previousCardUsedIndex!!,
                         node.previousCardMoveUsedIndex!!,
-                        Float.POSITIVE_INFINITY
+                        Float.POSITIVE_INFINITY,
+                        alpha,
+                        beta
                     )
                 }
                 // If the blue player master has been eaten or blue temple occupied by red master, is a loss condition
@@ -264,7 +335,9 @@ class BoardEvaluator {
                         node.originPosition!!,
                         node.previousCardUsedIndex!!,
                         node.previousCardMoveUsedIndex!!,
-                        Float.NEGATIVE_INFINITY
+                        Float.NEGATIVE_INFINITY,
+                        alpha,
+                        beta
                     )
                 }
             }
@@ -276,7 +349,9 @@ class BoardEvaluator {
                         node.originPosition!!,
                         node.previousCardUsedIndex!!,
                         node.previousCardMoveUsedIndex!!,
-                        Float.POSITIVE_INFINITY
+                        Float.POSITIVE_INFINITY,
+                        alpha,
+                        beta
                     )
                 }
                 // If the blue player master has been eaten, is a win condition
@@ -286,7 +361,9 @@ class BoardEvaluator {
                         node.originPosition!!,
                         node.previousCardUsedIndex!!,
                         node.previousCardMoveUsedIndex!!,
-                        Float.NEGATIVE_INFINITY
+                        Float.NEGATIVE_INFINITY,
+                        alpha,
+                        beta
                     )
                 }
             }
