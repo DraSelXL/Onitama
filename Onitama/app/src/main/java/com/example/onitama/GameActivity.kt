@@ -9,6 +9,9 @@ import android.widget.ImageView
 import android.widget.Toast
 import com.example.onitama.AI.BoardEvaluator
 import com.example.onitama.components.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import java.util.*
 
@@ -253,7 +256,7 @@ class GameActivity : AppCompatActivity() {
      * @param currentTurn Whose piece is being moved.
      */
     private fun movePiece(oldPos: Coordinate, newPos: Coordinate, currentTurn: String) {
-        var movedPiece = board.movePiece(oldPos, newPos)
+        board.movePiece(oldPos, newPos)
 
         imageBoard[newPos.y][newPos.x].setImageResource(board.blocks[newPos.y][newPos.x].piece!!.img)
 
@@ -287,7 +290,7 @@ class GameActivity : AppCompatActivity() {
      */
     private fun checkWinCondition() {
         if (board.redMaster == null) { // Has the red player lost their master?
-            Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
@@ -297,13 +300,15 @@ class GameActivity : AppCompatActivity() {
             return
         }
 
-        if (board.blocks[Board.BLUE_MASTER_BLOCK.y][Board.BLUE_MASTER_BLOCK.y].occupier == GameActivity.PLAYER_TURN) { // Has the blue player temple been occupied?
+        if (board.blocks[Board.BLUE_MASTER_BLOCK.y][Board.BLUE_MASTER_BLOCK.y].piece?.color == PlayerColor.RED &&
+            board.blocks[Board.BLUE_MASTER_BLOCK.y][Board.BLUE_MASTER_BLOCK.y].piece?.type == Piece.MASTER) { // Has the blue player temple been occupied?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
-        else if (board.blocks[Board.RED_MASTER_BLOCK.y][Board.RED_MASTER_BLOCK.x].occupier == GameActivity.ENEMY_TURN) { // Has the red player temple been occupied?
-            Toast.makeText(this, "Enemy win!", Toast.LENGTH_LONG).show()
+        else if (board.blocks[Board.RED_MASTER_BLOCK.y][Board.RED_MASTER_BLOCK.y].piece?.color == PlayerColor.BLUE &&
+            board.blocks[Board.RED_MASTER_BLOCK.y][Board.RED_MASTER_BLOCK.y].piece?.type == Piece.MASTER) { // Has the red player temple been occupied?
+            Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
@@ -322,18 +327,25 @@ class GameActivity : AppCompatActivity() {
      * Only be called whenever the red player has made a move or the game state switches to the blue player turn.
      */
     private fun moveAI() {
-        val bestMove = BoardEvaluator.evaluate(board, player, enemy, storedCard!!, PlayerColor.BLUE)
+        val coroutine: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
-        Toast.makeText(this, "Origin: ${bestMove.originPosition.x},${bestMove.originPosition.y}, Card: ${bestMove.cardIndex}, Card Move: ${bestMove.cardMoveIndex}", Toast.LENGTH_SHORT).show()
+        coroutine.launch {
+            val bestMove = BoardEvaluator.evaluate(board, player, enemy, storedCard!!, PlayerColor.BLUE)
 
-        var AICardMove = enemy.cards[bestMove.cardIndex].possibleMoves[bestMove.cardMoveIndex] // The AI card move that's going to be used
-        var newPos = Coordinate(bestMove.originPosition.y + AICardMove.y * -1, bestMove.originPosition.x + AICardMove.x * -1)
+//            Toast.makeText(this, "Origin: ${bestMove.originPosition.x},${bestMove.originPosition.y}, Card: ${bestMove.cardIndex}, Card Move: ${bestMove.cardMoveIndex}", Toast.LENGTH_SHORT).show()
 
-        selectedCard = bestMove.cardIndex
-        movePiece(bestMove.originPosition, newPos, turn)
-        selectedCard = -1
+            var AICardMove = enemy.cards[bestMove.cardIndex].possibleMoves[bestMove.cardMoveIndex] // The AI card move that's going to be used
+            var newPos = Coordinate(bestMove.originPosition.y + AICardMove.y * -1, bestMove.originPosition.x + AICardMove.x * -1)
 
-        switchTurn()
+            runOnUiThread {
+                selectedCard = bestMove.cardIndex
+                movePiece(bestMove.originPosition, newPos, turn)
+                selectedCard = -1
+                switchTurn()
+            }
+        }
+
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

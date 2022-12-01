@@ -25,7 +25,7 @@ class BoardEvaluator {
          * @param playerColor The current player turn in the ply.
          * @return A MoveEvaluation class which represents the best move to be taken.
          */
-        fun evaluate(board: Board, player: Player, enemy: Player, storedCard: Card, playerColor: String): MoveEvaluation {
+        suspend fun evaluate(board: Board, player: Player, enemy: Player, storedCard: Card, playerColor: String): MoveEvaluation {
             val rootNode = OnitamaNode(Board(board), player.cards, enemy.cards, storedCard) // Create a new node with a duplicate Board
 
             var beta = Double.POSITIVE_INFINITY
@@ -43,7 +43,7 @@ class BoardEvaluator {
          * @param playerColor The player's turn to play the game.
          * @param originalColor The original player's turn that called the evaluation function.
          */
-        private fun nextPly(depth: Int, node: OnitamaNode, playerColor: String, originalColor: String, alpha: Double, beta: Double): MoveEvaluation {
+        private suspend fun nextPly(depth: Int, node: OnitamaNode, playerColor: String, originalColor: String, alpha: Double, beta: Double): MoveEvaluation {
             // Stop the iteration when a loss or win condition is met
             val winEval = checkWinLossCondition(node, originalColor, alpha, beta)
             if (winEval != null) return winEval
