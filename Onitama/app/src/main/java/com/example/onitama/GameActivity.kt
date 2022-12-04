@@ -3,7 +3,6 @@ package com.example.onitama
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Toast
@@ -11,66 +10,60 @@ import com.example.onitama.AI.BoardEvaluator
 import com.example.onitama.components.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
 import java.util.*
 
 class GameActivity : AppCompatActivity() {
-    // Static Properties
     companion object {
-        /** Indicates that currently is the player's turn to move. */
-        var PLAYER_TURN = "player"
-
-        /** Indicates that currently is the enemy's turn to move. */
-        var ENEMY_TURN = "enemy"
+        val PLAYER_COLOR = PlayerColor.RED
+        val AI_COLOR = PlayerColor.BLUE
     }
 
     // Main Properties
-    private var gameStatus = true               // Indicates whether the game is running or finished (True = running)
+    private var gameStatus = true                       // Indicates whether the game is running or finished (True = running)
 
-    private lateinit var ivEnemy1: ImageView    // Enemy Card Image View 1
-    private lateinit var ivEnemy2: ImageView    // Enemy Card Image View 2
+    private lateinit var ivEnemy1: ImageView            // Enemy Card Image View 1
+    private lateinit var ivEnemy2: ImageView            // Enemy Card Image View 2
 
-    private lateinit var ivPlayer1: ImageView   // Player Card Image View 1
-    private lateinit var ivPlayer2: ImageView   // Player Card Image View 2
+    private lateinit var ivPlayer1: ImageView           // Player Card Image View 1
+    private lateinit var ivPlayer2: ImageView           // Player Card Image View 2
 
-    private lateinit var ivNext: ImageView      // The Stored Card Image View
+    private lateinit var ivNext: ImageView              // The Stored Card Image View
 
-    private lateinit var enemy: Player          // The Enemy Specific Class (Cards, and Color)
-    private lateinit var player: Player         // The Main Player Specific Identities (Cards, and Color)
+    private lateinit var enemy: Player                  // The Enemy Specific Class (Cards, and Color)
+    private lateinit var player: Player                 // The Main Player Specific Identities (Cards, and Color)
 
-    private var turn = GameActivity.PLAYER_TURN // Indicates whose turn it is currently
-    private var selectedCard = -1               // Holds the current selected index from the owned cards
-    private var selectedBlock: Block? = null    // Indicates what is the currently selected game board
-    private var isSelecting = false             // The current mode for selecting a piece
-
-    // Indicates how many pieces are currently on the board
-    private var playerMasterStatus = true
-    private var enemyMasterStatus = true
+    private var turn = PLAYER_COLOR                     // Indicates whose turn it is currently
+    private var selectedCard = -1                       // Holds the current selected index from the owned cards
+    private var selectedCoordinate: Coordinate? = null  // Indicates what is the currently selected game board
+    private var isSelecting = false                     // The current mode for selecting a piece
 
     // A list of all available card in the deck
     private var allCards:Array<Card> = arrayOf(
-        Card(Card.TIGER, R.drawable.tiger, Card.BLUE),
-        Card(Card.DRAGON, R.drawable.dragon, Card.RED),
-        Card(Card.FROG, R.drawable.frog, Card.RED),
-        Card(Card.RABBIT, R.drawable.rabbit, Card.BLUE),
-        Card(Card.CRAB, R.drawable.crab, Card.BLUE),
-        Card(Card.ELEPHANT, R.drawable.elephant, Card.RED),
-        Card(Card.GOOSE, R.drawable.goose, Card.BLUE),
-        Card(Card.ROOSTER, R.drawable.rooster, Card.RED),
-        Card(Card.MONKEY, R.drawable.monkey, Card.BLUE),
-        Card(Card.MANTIS, R.drawable.mantis, Card.RED),
-        Card(Card.HORSE, R.drawable.horse, Card.RED),
-        Card(Card.OX, R.drawable.ox, Card.BLUE),
-        Card(Card.CRANE, R.drawable.crane, Card.BLUE),
-        Card(Card.BOAR, R.drawable.boar, Card.RED),
-        Card(Card.EEL, R.drawable.eel, Card.BLUE),
-        Card(Card.COBRA, R.drawable.cobra, Card.RED),
+        Card(Card.TIGER, R.drawable.tiger, PlayerColor.BLUE),
+        Card(Card.DRAGON, R.drawable.dragon, PlayerColor.RED),
+        Card(Card.FROG, R.drawable.frog, PlayerColor.RED),
+        Card(Card.RABBIT, R.drawable.rabbit, PlayerColor.BLUE),
+        Card(Card.CRAB, R.drawable.crab, PlayerColor.BLUE),
+        Card(Card.ELEPHANT, R.drawable.elephant, PlayerColor.RED),
+        Card(Card.GOOSE, R.drawable.goose, PlayerColor.RED),
+        Card(Card.ROOSTER, R.drawable.rooster, PlayerColor.RED),
+        Card(Card.MONKEY, R.drawable.monkey, PlayerColor.BLUE),
+        Card(Card.MANTIS, R.drawable.mantis, PlayerColor.BLUE),
+        Card(Card.HORSE, R.drawable.horse, PlayerColor.RED),
+        Card(Card.OX, R.drawable.ox, PlayerColor.BLUE),
+        Card(Card.CRANE, R.drawable.crane, PlayerColor.BLUE),
+        Card(Card.BOAR, R.drawable.boar, PlayerColor.RED),
+        Card(Card.EEL, R.drawable.eel, PlayerColor.BLUE),
+        Card(Card.COBRA, R.drawable.cobra, PlayerColor.RED),
     )
 
     private var storedCard: Card? = null                                        // The stored card that determine the starting turn
     private var imageBoard: MutableList<MutableList<ImageButton>> = mutableListOf()  // The variable that stores the ImageButtons
     private var board: Board = Board()     // The variable that stores the conditions of every block in the board
+
+    val coroutine: CoroutineScope = CoroutineScope(Dispatchers.Default)
 
     /**
      * Randomizes 5 starting cards and store 2 of each of the randomized cards into each players.
@@ -98,8 +91,8 @@ class GameActivity : AppCompatActivity() {
             gameCards.add(allCards[rnd])
         }
         // Store the randomized cards into the players
-        enemy = Player(arrayOf(gameCards[0], gameCards[1]), Card.BLUE)
-        player = Player(arrayOf(gameCards[2], gameCards[3]), Card.RED)
+        enemy = Player(arrayOf(gameCards[0], gameCards[1]), AI_COLOR)
+        player = Player(arrayOf(gameCards[2], gameCards[3]), PLAYER_COLOR)
 
         storedCard = gameCards[gameCards.lastIndex] // Store the last randomized card into the activity
 
@@ -122,10 +115,7 @@ class GameActivity : AppCompatActivity() {
     private fun initNewGame() {
         initRandomCards()
 
-        turn = if (storedCard!!.color == Card.BLUE) GameActivity.ENEMY_TURN else GameActivity.PLAYER_TURN
-
-        playerMasterStatus = true
-        enemyMasterStatus = true
+        turn = if (storedCard!!.color == PLAYER_COLOR) PLAYER_COLOR else AI_COLOR
 
         board.refresh() // Reset the board
     }
@@ -140,8 +130,14 @@ class GameActivity : AppCompatActivity() {
     private fun isValidPosition(y: Int, x: Int): Boolean {
         var isValid = true
 
-        // Position is not valid if the block is not inside the board or the block contains a friendly piece
-        if (!(y in 0..4 && x in 0..4) || board.blocks[y][x].occupier == turn) {
+        try {
+            // Position is not valid if the block is not inside the board or the block contains a friendly piece
+            val blockPiece = board.getPiece(Coordinate(x, y))
+            if (blockPiece != null && blockPiece.color == turn) {
+                isValid = false
+            }
+        }
+        catch (e: Exception) {
             isValid = false
         }
 
@@ -175,7 +171,7 @@ class GameActivity : AppCompatActivity() {
     private fun refreshSelection(){
         refreshBoardColor() // Clears all block background color
 
-        selectedBlock = null
+        selectedCoordinate = null
         selectedCard = -1
         isSelecting = false
 
@@ -196,7 +192,7 @@ class GameActivity : AppCompatActivity() {
     private fun cleanBlock(y: Int, x: Int){
         // board[y][x].setImageResource(R.drawable.plain_bg)
         imageBoard[y][x].setImageResource(0)
-        board.blocks[y][x] = Block(Coordinate(y,x))
+//        board.blocks[y][x] = Block(Coordinate(x, y))
     }
 
     /**
@@ -205,19 +201,19 @@ class GameActivity : AppCompatActivity() {
     private fun applyBoardMoves(): Boolean{
         var isAble = false
         //color the board
-        if (selectedBlock != null) { // Is there a block currently being selected?
+        if (selectedCoordinate != null) { // Is there a block currently being selected?
             var myCard: Card
             refreshBoardColor()
-            if (turn == GameActivity.PLAYER_TURN) { // Is it the player's turn?
+            if (turn == PLAYER_COLOR) { // Is it the player's turn?
                 myCard = player.cards[selectedCard] // Get the currently selected card from the player
 
                 // Add a highlight in blocks based on the coordinates of the possible moves from the player's perspective
                 for (i in myCard.possibleMoves.indices){
                     var tempMove = myCard.possibleMoves[i]
-                    var yNext = selectedBlock!!.pos.y + tempMove.y
-                    var xNext = selectedBlock!!.pos.x + tempMove.x
+                    var yNext = selectedCoordinate!!.y + tempMove.y
+                    var xNext = selectedCoordinate!!.x + tempMove.x
 
-                    if (isValidPosition(yNext,xNext)) { // Checks whether the move is a valid one
+                    if (isValidPosition(yNext, xNext)) { // Checks whether the move is a valid one
                         setColorBlock(yNext, xNext) // Highlight the block
 
                         // Tag indicates that the current block is a valid move
@@ -226,16 +222,16 @@ class GameActivity : AppCompatActivity() {
                     }
                 }
             }
-            else if (turn == GameActivity.ENEMY_TURN) { // Is it the enemy's turn?
+            else if (turn == AI_COLOR) { // Is it the ai's turn?
                 myCard = enemy.cards[selectedCard] // Get the currently selected card from the enemy
 
                 // Add a highlight in blocks based on the coordinates of the possible moves from the enemy's perspective
                 for (i in myCard.possibleMoves.indices) {
                     var tempMove = myCard.possibleMoves[i]
-                    var yNext = selectedBlock!!.pos.y + (tempMove.y * -1)
-                    var xNext = selectedBlock!!.pos.x + (tempMove.x * -1)
+                    var yNext = selectedCoordinate!!.y + (tempMove.y * -1)
+                    var xNext = selectedCoordinate!!.x + (tempMove.x * -1)
 
-                    if (isValidPosition(yNext,xNext)) {
+                    if (isValidPosition(yNext, xNext)) {
                         setColorBlock(yNext, xNext)
 
                         // Tag indicates that the current block is a valid move
@@ -255,13 +251,14 @@ class GameActivity : AppCompatActivity() {
      * @param newPos The new coordinate of the piece to move.
      * @param currentTurn Whose piece is being moved.
      */
-    private fun movePiece(oldPos: Coordinate, newPos: Coordinate, currentTurn: String) {
+    private fun movePiece(oldPos: Coordinate, newPos: Coordinate, currentTurn: PlayerColor) {
         board.movePiece(oldPos, newPos)
 
-        imageBoard[newPos.y][newPos.x].setImageResource(board.blocks[newPos.y][newPos.x].piece!!.img)
+        imageBoard[newPos.y][newPos.x].setImageResource(board.getPiece(Coordinate(newPos.x, newPos.y))!!.image)
 
         // Whose turn currently is moving the piece and replace the cards accordingly
-        if (currentTurn == GameActivity.PLAYER_TURN) {
+        if (currentTurn == PLAYER_COLOR) {
+            // Switch the used player card with the stored card
             var temp = player.cards[selectedCard].copy()
             player.cards[selectedCard] = storedCard!!.copy()
             storedCard  = temp
@@ -271,7 +268,8 @@ class GameActivity : AppCompatActivity() {
 
             ivNext.setImageResource(storedCard!!.img)
         }
-        else if (currentTurn == GameActivity.ENEMY_TURN) {
+        else if (currentTurn == AI_COLOR) {
+            // Switch the used AI card with the stored card
             var temp = enemy.cards[selectedCard].copy()
             enemy.cards[selectedCard] = storedCard!!.copy()
             storedCard = temp
@@ -300,14 +298,14 @@ class GameActivity : AppCompatActivity() {
             return
         }
 
-        if (board.blocks[Board.BLUE_MASTER_BLOCK.y][Board.BLUE_MASTER_BLOCK.y].piece?.color == PlayerColor.RED &&
-            board.blocks[Board.BLUE_MASTER_BLOCK.y][Board.BLUE_MASTER_BLOCK.y].piece?.type == Piece.MASTER) { // Has the blue player temple been occupied?
+        if (board.getPiece(Coordinate(Board.BLUE_MASTER_BLOCK.x, Board.BLUE_MASTER_BLOCK.y))?.color == PlayerColor.RED &&
+            board.getPiece(Coordinate(Board.BLUE_MASTER_BLOCK.x, Board.BLUE_MASTER_BLOCK.y))?.type == PieceType.MASTER) { // Has the blue player temple been occupied?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
         }
-        else if (board.blocks[Board.RED_MASTER_BLOCK.y][Board.RED_MASTER_BLOCK.y].piece?.color == PlayerColor.BLUE &&
-            board.blocks[Board.RED_MASTER_BLOCK.y][Board.RED_MASTER_BLOCK.y].piece?.type == Piece.MASTER) { // Has the red player temple been occupied?
+        else if (board.getPiece(Coordinate(Board.RED_MASTER_BLOCK.x, Board.RED_MASTER_BLOCK.y))?.color == PlayerColor.BLUE &&
+            board.getPiece(Coordinate(Board.RED_MASTER_BLOCK.x, Board.RED_MASTER_BLOCK.y))?.type == PieceType.MASTER) { // Has the red player temple been occupied?
             Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
             return
@@ -319,33 +317,36 @@ class GameActivity : AppCompatActivity() {
      * Called whenever a player has made a move.
      */
     fun switchTurn() {
-        turn = if (turn == GameActivity.PLAYER_TURN) GameActivity.ENEMY_TURN else GameActivity.PLAYER_TURN
+        turn = if (turn == PLAYER_COLOR) AI_COLOR else PLAYER_COLOR
     }
 
     /**
      * Make the AI thinks which is the best possible move to make in the current board state.
      * Only be called whenever the red player has made a move or the game state switches to the blue player turn.
      */
-    private fun moveAI() {
-        val coroutine: CoroutineScope = CoroutineScope(Dispatchers.Default)
-
-        coroutine.launch {
-            val bestMove = BoardEvaluator.evaluate(board, player, enemy, storedCard!!, PlayerColor.BLUE)
+    private suspend fun moveAI() {
+        val defer = coroutine.async {
+            val bestMove = BoardEvaluator.evaluate(board, player.cards, enemy.cards, storedCard!!, PlayerColor.BLUE)
 
 //            Toast.makeText(this, "Origin: ${bestMove.originPosition.x},${bestMove.originPosition.y}, Card: ${bestMove.cardIndex}, Card Move: ${bestMove.cardMoveIndex}", Toast.LENGTH_SHORT).show()
 
-            var AICardMove = enemy.cards[bestMove.cardIndex].possibleMoves[bestMove.cardMoveIndex] // The AI card move that's going to be used
-            var newPos = Coordinate(bestMove.originPosition.y + AICardMove.y * -1, bestMove.originPosition.x + AICardMove.x * -1)
+            var AICardMove = enemy.cards[bestMove.cardUsedIndex].possibleMoves[bestMove.moveUsedIndex] // The AI card move that's going to be used
+            var newPos = Coordinate(bestMove.originPosition.x + AICardMove.x * -1, bestMove.originPosition.y + AICardMove.y * -1)
 
             runOnUiThread {
-                selectedCard = bestMove.cardIndex
+                selectedCard = bestMove.cardUsedIndex
                 movePiece(bestMove.originPosition, newPos, turn)
                 selectedCard = -1
-                switchTurn()
             }
         }
 
+        defer.await()
 
+        runOnUiThread {
+            checkWinCondition()
+        }
+
+        switchTurn()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -371,7 +372,7 @@ class GameActivity : AppCompatActivity() {
         // Add player's cards event listeners
         ivPlayer1.setOnClickListener {
             // Select the first player card when it's the player's turn
-            if(turn == GameActivity.PLAYER_TURN){
+            if(turn == PlayerColor.RED){
                 selectedCard = 0 //left
                 ivPlayer1.setBackgroundResource(R.drawable.border)
                 ivPlayer2.setBackgroundResource(0)
@@ -379,28 +380,10 @@ class GameActivity : AppCompatActivity() {
         }
         ivPlayer2.setOnClickListener {
             // Select the second player card when it's the player's turn
-            if(turn == GameActivity.PLAYER_TURN) {
+            if(turn == PlayerColor.RED) {
                 selectedCard = 1 //right
                 ivPlayer2.setBackgroundResource(R.drawable.border)
                 ivPlayer1.setBackgroundResource(0)
-            }
-        }
-
-        // Add Enemy's Cards event listeners
-        ivEnemy1.setOnClickListener {
-            // Select the first enemy card when it's the enemy's turn
-            if(turn == GameActivity.ENEMY_TURN) {
-                selectedCard = 0 //left
-                ivEnemy1.setBackgroundResource(R.drawable.border)
-                ivEnemy2.setBackgroundResource(0)
-            }
-        }
-        ivEnemy2.setOnClickListener {
-            // Select the second enemy card when it's the enemy's turn
-            if(turn == GameActivity.ENEMY_TURN) {
-                selectedCard = 1 //right
-                ivEnemy2.setBackgroundResource(R.drawable.border)
-                ivEnemy1.setBackgroundResource(0)
             }
         }
 
@@ -413,47 +396,52 @@ class GameActivity : AppCompatActivity() {
                         return@setOnClickListener
                     }
 
-
                     // Select a piece when a piece is being selected from the board
-                    if (selectedCard != -1 && board.blocks[i][j].piece != null && board.blocks[i][j].occupier == turn) { // Has a card been selected, has a piece on the block, and is the correct piece
+                    if (selectedCard != -1 && board.getPiece(Coordinate(j, i)) != null && board.getPiece(Coordinate(j, i))!!.color == turn) { // Has a card been selected, has a piece on the block, and is the correct piece
                         // Start highlighting blocks for possible moves and prepare to move the piece
-                        selectedBlock = board.blocks[i][j]
+                        selectedCoordinate = Coordinate(j, i)
                         isSelecting = true
+
                         var isAble = applyBoardMoves()
                         if(!isAble){
-                            selectedBlock = null
+                            selectedCoordinate = null
                             isSelecting = false
                         }
                     }
 
                     // Move a piece if a piece is being selected and a board block is being clicked
                     if (isSelecting) { // Is the current mode selecting a piece
-                       //board[i][j] = new location
-                       if (imageBoard[i][j].tag == 1) { // Is the clicked block a valid move?
-                           var oldCoordinate: Coordinate = selectedBlock!!.pos
-                           var newCoordinate: Coordinate = Coordinate(i, j)
+                        //board[i][j] = new location
+                        if (imageBoard[i][j].tag == 1) { // Is the clicked block a valid move?
+                            var oldCoordinate: Coordinate = selectedCoordinate!!
+                            var newCoordinate: Coordinate = Coordinate(j, i)
 
-                           // Place the piece onto the clicked block
-                           movePiece(oldCoordinate, newCoordinate, turn)
-                           refreshSelection()
+                            // Place the piece onto the clicked block
+                            movePiece(oldCoordinate, newCoordinate, turn)
 
-                           checkWinCondition();
+                            refreshSelection()
 
-                           if (gameStatus) {
-                               // Switch the turn
-                               switchTurn()
+                            checkWinCondition();
 
-                               moveAI() // The AI moves a piece if the game is still going
+                            if (gameStatus) {
+                                // Switch the turn
+                                switchTurn()
 
-                               checkWinCondition()
-                           }
-                       }
+                                coroutine.launch {
+                                    moveAI() // The AI moves a piece if the game is still going
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
         // If the first turn is the AI turn, move a piece
-        if (turn == ENEMY_TURN) moveAI()
+        if (turn == AI_COLOR) {
+            coroutine.launch {
+                moveAI()
+            }
+        }
     }
 }
