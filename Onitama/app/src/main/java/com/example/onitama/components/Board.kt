@@ -10,74 +10,68 @@ import com.example.onitama.R
  * This class holds the pieces of each players and interacts with them.
  */
 class Board(
-    board: Board? = null
+    var redMaster: Piece? = null,                       // The piece representing the red player master piece.
+    var blueMaster: Piece? = null,                      // The piece representing the blue player master piece.
+    var redPieces: ArrayList<Piece> = arrayListOf(),    // The list holding the red player pieces.
+    var bluePieces: ArrayList<Piece> = arrayListOf()    // The list holding the blue player pieces.
 ) {
+    // Static variables
     companion object {
-        var WIDTH = 5           // Indicates the width of the board
-        var HEIGHT = 5          // Indicates the height of the board
-        var RED_MASTER_BLOCK = Coordinate(4, 2)     // Indicates on which block is the Red Master Piece spawn
-        var BLUE_MASTER_BLOCK = Coordinate(0, 2)    // Indicates on which block is the Blue Master Piece spawn
+        var WIDTH = 5                                   // Indicates the width of the board.
+        var HEIGHT = 5                                  // Indicates the height of the board.
+        var RED_MASTER_BLOCK = Coordinate(2, 4)   // Indicates on which block is the Red Master Piece spawn.
+        var BLUE_MASTER_BLOCK = Coordinate(2, 0)  // Indicates on which block is the Blue Master Piece spawn.
+
+        fun print(board: Board) {
+            for (row in 0 until HEIGHT) {
+                var rowString = ""
+                for (column in 0 until WIDTH) {
+                    val blockPiece = board.getPiece(Coordinate(column, row))
+                    rowString += if (blockPiece == null) {
+                        "| "
+                    } else {
+                        if (blockPiece.color == PlayerColor.BLUE) {
+                            "|O"
+                        } else "|X"
+                    }
+                }
+                Log.d("BOARD", rowString)
+            }
+        }
     }
 
     /**
-     * A two dimensional array that holds the values of the board.
-     * Each element holds a Block class that can be accessed to see what's inside the Block.
+     * ### A secondary constructor of the Board object.
+     * Performs a deep copy of the argument Board object.
      *
-     * By default it has a width of 5 elements and a height of 5 elements.
+     * @param oldBoard The board to deep copy.
      */
-    var blocks: Array<Array<Block>> = Array(HEIGHT) {
-        y -> Array(WIDTH) {
-            x -> Block(Coordinate(y, x))
-        }
+    constructor(oldBoard: Board) : this() {
+        redMaster = if (oldBoard.redMaster != null) Piece(oldBoard.redMaster!!) else null
+        blueMaster = if (oldBoard.blueMaster != null) Piece(oldBoard.blueMaster!!) else null
+
+        for (oldRedPiece in oldBoard.redPieces)
+            redPieces.add(Piece(oldRedPiece))
+
+        for (oldBluePiece in oldBoard.bluePieces)
+            bluePieces.add(Piece(oldBluePiece))
     }
 
-    /** The list of red pieces on the board. */
-    var redMaster: Piece? = null
-    /** The list of red pawn pieces on the board */
-    var redPieces: ArrayList<Piece> = arrayListOf()
+    // Methods
+    /**
+     * Checks the given argument coordinate for a valid position inside the board.
+     * Throws an exception if a discrepancy is found.
+     *
+     * @param coordinate The coordinate that is going to be checked.
+     */
+    fun checkCoordinate(coordinate: Coordinate) {
+        // Checks the X axis
+        if (coordinate.x < 0 || coordinate.x >= WIDTH)
+            throw Exception("The specified X axis coordinate is not valid! x= ${coordinate.x}")
 
-    /** The list of blue pieces on the board. */
-    var blueMaster: Piece? = null
-    /** The list of blue pawn pieces on the board */
-    var bluePieces: ArrayList<Piece> = arrayListOf()
-
-    init {
-        if (board != null) { // Check whether a board argument is supplied to perform a deep copy
-            // Deep copy the argument's blocks values
-            for (row in board.blocks.indices) {
-                for (column in board.blocks[row].indices) {
-                    blocks[row][column].occupier = board.blocks[row][column].occupier
-                    blocks[row][column].pos = board.blocks[row][column].pos.copy()
-                    blocks[row][column].piece = board.blocks[row][column].piece?.copy()
-                }
-            }
-
-            // Deep copy the argument's pieces values
-            if (board.redMaster != null) {
-                redMaster = Piece(board.redMaster!!.type, board.redMaster!!.img, board.redMaster!!.color)
-                redMaster!!.pos = Coordinate(board.redMaster!!.pos.y, board.redMaster!!.pos.x)
-            }
-            for (i in board.redPieces.indices) {
-                val oldPiece = board.redPieces[i]
-                val newPiece = Piece(oldPiece.type, oldPiece.img, oldPiece.color)
-                newPiece.pos = Coordinate(oldPiece.pos.y, oldPiece.pos.x)
-                redPieces.add(newPiece)
-            }
-
-            if (board.blueMaster != null) {
-                blueMaster = Piece(board.blueMaster!!.type, board.blueMaster!!.img, board.blueMaster!!.color)
-                blueMaster!!.pos = Coordinate(board.blueMaster!!.pos.y, board.blueMaster!!.pos.x)
-            }
-            for (i in board.bluePieces.indices) {
-                val oldPiece = board.bluePieces[i]
-                val newPiece = Piece(oldPiece.type, oldPiece.img, oldPiece.color)
-                newPiece.pos = Coordinate(oldPiece.pos.y, oldPiece.pos.x)
-                bluePieces.add(newPiece)
-            }
-        }
-        else {
-            refresh()
-        }
+        // Checks the Y axis
+        else if (coordinate.y < 0 || coordinate.y >= HEIGHT)
+            throw Exception("The specified Y axis coordinate is not valid! y = ${coordinate.y}")
     }
 
     /**
@@ -85,120 +79,115 @@ class Board(
      * Called whenever a new game is about to commence.
      */
     fun refresh() {
-        blueMaster = null
-        redMaster = null
+        // Initialize the master pieces.
+        redMaster = Piece(PieceType.MASTER, R.drawable.ic_crown_red, PlayerColor.RED, Coordinate(RED_MASTER_BLOCK.x, RED_MASTER_BLOCK.y))
+        blueMaster = Piece(PieceType.MASTER, R.drawable.ic_crown_blue, PlayerColor.BLUE, Coordinate(BLUE_MASTER_BLOCK.x, BLUE_MASTER_BLOCK.y))
 
-        bluePieces.clear()
+        // Initialize the pawn pieces.
         redPieces.clear()
+        bluePieces.clear()
+        for (column in 0 until WIDTH) {
+            if (column != RED_MASTER_BLOCK.x)
+                redPieces.add(Piece(PieceType.PAWN, R.drawable.ic_pawn_red, PlayerColor.RED, Coordinate(column, RED_MASTER_BLOCK.y)))
 
-        for (row in 0 until Board.HEIGHT) {
-            for (column in 0 until Board.WIDTH) {
-                if (row == Board.BLUE_MASTER_BLOCK.y) { // Is the current row the enemy's?
-
-                    if (column != Board.BLUE_MASTER_BLOCK.x) { // Is the current column not the master's column?
-                        blocks[row][column].occupier = Block.OCCUPY_ENEMY
-
-                        // Create new piece
-                        var piece = Piece(Piece.PAWN, R.drawable.ic_pawn_blue, PlayerColor.BLUE)
-                        piece.pos = Coordinate(row, column)
-                        bluePieces.add(piece)
-                        blocks[row][column].piece = piece
-                    }
-                    else { // Set the column with a master piece
-                        blocks[row][column].occupier = Block.OCCUPY_ENEMY
-
-                        // Create new piece
-                        var piece = Piece(Piece.MASTER, R.drawable.ic_crown_blue, PlayerColor.BLUE)
-                        piece.pos = Coordinate(row, column)
-                        blocks[row][column].piece = piece
-                        blueMaster = piece
-                    }
-                }
-                else if (row == Board.RED_MASTER_BLOCK.y) { // Is the current row the player's row?
-                    if (column != Board.RED_MASTER_BLOCK.x) { // Is the current row not the master's column?
-                        blocks[row][column].occupier = Block.OCCUPY_PLAYER
-
-                        // Create new piece
-                        var piece = Piece(Piece.PAWN, R.drawable.ic_pawn_red, PlayerColor.RED)
-                        piece.pos = Coordinate(row, column)
-                        redPieces.add(piece)
-                        blocks[row][column].piece = piece
-                    }
-                    else { // Set the column with a master piece
-                        blocks[row][column].occupier = Block.OCCUPY_PLAYER
-
-                        // Create new piece
-                        var piece = Piece(Piece.MASTER, R.drawable.ic_crown_red, PlayerColor.RED)
-                        piece.pos = Coordinate(row, column)
-                        blocks[row][column].piece = piece
-                        redMaster = piece
-                    }
-                }
-                else { // Sets the current block as an empty block
-                    blocks[row][column].occupier = Block.OCCUPY_NONE
-                    blocks[row][column].piece = null
-                }
-            }
+            if (column != BLUE_MASTER_BLOCK.x)
+                bluePieces.add(Piece(PieceType.PAWN, R.drawable.ic_pawn_blue, PlayerColor.BLUE, Coordinate(column, BLUE_MASTER_BLOCK.y)))
         }
     }
 
     /**
+     * Search for a piece inside the board with the specified coordinate.
+     *
+     * @param coordinate The coordinate of the block in the board.
+     *
+     * @return The piece if the coordinate contains a piece, null otherwise.
+     */
+    fun getPiece(coordinate: Coordinate): Piece? {
+        // Check whether the given coordinate is valid
+        checkCoordinate(coordinate)
+
+        // Check if the master piece is there.
+        if (redMaster
+                ?.position
+                ?.x == coordinate.x &&
+            redMaster
+                ?.position
+                ?.y == coordinate.y)
+            return redMaster
+
+        else if (blueMaster?.position?.x == coordinate.x && blueMaster?.position?.y == coordinate.y)
+            return blueMaster
+
+        // Search between red pawn pieces
+        var foundPiece: Piece? = null
+        var i = 0
+        while(i < redPieces.size) {
+            var tempPiece = redPieces[i]
+            if (tempPiece.position.x == coordinate.x && tempPiece.position.y == coordinate.y) {
+                foundPiece = tempPiece
+                i = WIDTH // Exit out of the loop
+            }
+
+            i++
+        }
+
+        // Returns the found piece
+        if (foundPiece != null) return foundPiece
+
+        // Continue search in blue pawn pieces
+        i = 0
+        while(i < bluePieces.size) {
+            var tempPiece = bluePieces[i]
+            if (tempPiece.position.x == coordinate.x && tempPiece.position.y == coordinate.y) {
+                foundPiece = tempPiece
+                i = WIDTH // Exit out of the loop
+            }
+
+            i++
+        }
+
+        // Return result whether found or not
+        return foundPiece
+    }
+
+    /**
      * Moves a piece within the board to the desired location.
-     * If for some reason the target block to move the piece does not have a piece, throws an error.
+     * If for some reason the target block to move the piece does not have a piece, throws an exception.
      *
      * @param oldPosition The position of the piece that is going to be moved.
      * @param newPosition The position of the target coordinate to move the piece.
-     * @return The piece that has been eaten.
+     * @return The piece that has been captured if any, null otherwise.
      */
     fun movePiece(oldPosition: Coordinate, newPosition: Coordinate): Piece? {
-        var targetBlock = blocks[newPosition.y][newPosition.x]
-        var oldBlock = blocks[oldPosition.y][oldPosition.x]
+        // Checks the parameter
+        checkCoordinate(oldPosition)
+        checkCoordinate(newPosition)
 
-        var targetPiece = targetBlock.piece
+        // Get the piece in the specified coordinate
+        var oldPiece: Piece = getPiece(oldPosition) ?: throw Exception("The coordinate does not have a piece!")
+        var destinationPiece: Piece? = getPiece(newPosition)
 
-        if (targetPiece != null) {
-            // Perform a deep copy of the gonna be eaten Piece
-            targetPiece = Piece(targetPiece.type, targetPiece.img, targetPiece.color)
-            targetPiece.pos = newPosition
+        // Throws an exception if the move captures a friendly piece
+        if (destinationPiece?.color == oldPiece.color) throw Exception("Attempting to capture a friendly piece!")
 
-            if (targetPiece.color == PlayerColor.RED) {
-                if (targetPiece.type == Piece.PAWN) {
-                    redPieces.remove(targetPiece)
-                }
-                else redMaster = null
+        // Deep copy the destination piece before moving any piece
+        var capturedPiece = if (destinationPiece != null) Piece(destinationPiece) else null
+
+        // Remove the captured piece from the list if there is any
+        if (destinationPiece?.color == PlayerColor.RED)
+            if (destinationPiece != redMaster) {
+                redPieces.remove(destinationPiece)
             }
-            else {
-                if (targetPiece.type == Piece.PAWN) {
-                    bluePieces.remove(targetPiece)
-                }
-                else blueMaster = null
+            else redMaster = null
+        else if (destinationPiece?.color == PlayerColor.BLUE)
+            if (destinationPiece != blueMaster) {
+                bluePieces.remove(destinationPiece)
             }
-        }
+            else blueMaster = null
 
-        if (oldBlock.piece == null) {
-            throw Exception("No piece in the block to move.")
-        }
+        // Move the desired piece to the new coordinate
+        oldPiece.moveTo(newPosition.x, newPosition.y)
 
-        // Set the block attributes
-        blocks[newPosition.y][newPosition.x] = Block(Coordinate(newPosition.y, newPosition.x), oldBlock.occupier, oldBlock.piece)
-        blocks[newPosition.y][newPosition.x].piece!!.pos = Coordinate(newPosition.y, newPosition.x)
-
-        // Reset the old block
-        blocks[oldPosition.y][oldPosition.x].piece = null
-        blocks[oldPosition.y][oldPosition.x].occupier = Block.OCCUPY_NONE
-
-        // Change the piece position attribute
-        if (targetPiece?.color == PlayerColor.RED) {
-            var redPiece = redPieces.find { piece -> piece.pos.x == oldBlock.pos.x && piece.pos.y == oldBlock.pos.y }
-
-            if (redPiece != null) redPieces[redPieces.indexOf(redPiece)].pos = Coordinate(newPosition.y, newPosition.x)
-        }
-        else if (targetPiece?.color == PlayerColor.RED) {
-            var bluePiece = bluePieces.find { piece -> piece.pos.x == oldBlock.pos.x && piece.pos.y == oldBlock.pos.y }
-
-            if (bluePiece != null) bluePieces[bluePieces.indexOf(targetPiece)].pos = Coordinate(newPosition.y, newPosition.x)
-        }
-
-        return targetPiece
+        return capturedPiece
     }
 }
