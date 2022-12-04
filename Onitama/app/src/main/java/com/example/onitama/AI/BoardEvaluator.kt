@@ -10,7 +10,7 @@ import kotlin.math.pow
  */
 class BoardEvaluator {
     companion object {
-        val MAX_PLY = 3
+        val MAX_PLY = 5
 
         /**
          * Begin to predict all possible positions and calculate whether it is advantageous or not according to the AI.
@@ -29,7 +29,9 @@ class BoardEvaluator {
             var beta = Double.POSITIVE_INFINITY
 
             val rootNode = OnitamaNode(board, redCards, blueCards, storedCard)
-            val bestMove = nextPly(0, rootNode, originalColor, originalColor, alpha, beta)
+            val bestMove = nextPly(0, rootNode, originalColor, alpha, beta)
+
+            Log.d("BEST_MOVE", "alpha: ${bestMove.alpha}, beta: ${bestMove.beta}")
 
             return bestMove
         }
@@ -46,8 +48,8 @@ class BoardEvaluator {
          *
          * @return A MoveEvaluation object with the highest evaluation score.
          */
-        fun nextPly(depth: Int, node: OnitamaNode, currentColor: PlayerColor, originalColor: PlayerColor, alpha: Double, beta: Double): MoveEvaluation {
-            var winEval = checkWinLossCondition(depth, node, currentColor, originalColor, alpha, beta)
+        fun nextPly(depth: Int, node: OnitamaNode, currentColor: PlayerColor, alpha: Double, beta: Double): MoveEvaluation {
+            var winEval = checkWinLossCondition(depth, node, currentColor, alpha, beta)
             if (winEval != null) {
                 return winEval
             }
@@ -66,59 +68,66 @@ class BoardEvaluator {
                 for (childNode in childrenNodes) {
                     if (currentColor == PlayerColor.RED) { // Player (Minimizing)
                         // Recurse to the next depth of the ply and get the beta value
-                        val moveEvaluation = nextPly(depth+1, childNode, PlayerColor.BLUE, originalColor, currentAlpha, currentBeta)
-
-                        Log.d("ALPHA-BETA", "Alpha: ${moveEvaluation.alpha}, Beta: ${moveEvaluation.beta}")
+                        val moveEvaluation = nextPly(depth+1, childNode, PlayerColor.BLUE, currentAlpha, currentBeta)
 
                         // Compare which beta value is smaller
                         currentBeta = if (moveEvaluation.evaluation < currentBeta) moveEvaluation.evaluation else currentBeta
 
                         // Attach the Alpha-Beta value to the evaluations
-                        moveEvaluation.alpha = currentAlpha
                         moveEvaluation.beta = currentBeta
 
                         // Add the evaluation to the list of evaluations
                         evaluations.add(moveEvaluation)
+
+                        if (currentAlpha >= currentBeta) {
+                            Log.d("ALPHA-BETA", "Maximizing: PRUNE")
+                            break
+                        }
                     }
                     else if (currentColor == PlayerColor.BLUE) { // AI (Maximizing)
                         // Recurse to the next depth of the ply and get the alpha value
-                        val moveEvaluation = nextPly(depth+1, childNode, PlayerColor.RED, originalColor,currentAlpha, currentBeta)
-
-                        Log.d("ALPHA-BETA", "Alpha: ${moveEvaluation.alpha}, Beta: ${moveEvaluation.beta}")
+                        val moveEvaluation = nextPly(depth+1, childNode, PlayerColor.RED, currentAlpha, currentBeta)
 
                         // Compare which beta value is smaller
                         currentAlpha = if (moveEvaluation.evaluation > currentAlpha) moveEvaluation.evaluation else currentAlpha
 
                         // Attach the Alpha-Beta value to the evaluations
                         moveEvaluation.alpha = currentAlpha
-                        moveEvaluation.beta = currentBeta
 
                         // Add the evaluation to the list of evaluations
                         evaluations.add(moveEvaluation)
-                    }
 
-                    if (currentAlpha >= currentBeta) {
-                        Log.d("ALPHA-BETA", "nextPly: PRUNE")
-                        break
+                        if (currentAlpha >= currentBeta) {
+                            Log.d("ALPHA-BETA", "Minimizing: PRUNE")
+                            break
+                        }
                     }
                 }
+                Log.d("ALPHA-BETA", "Alpha: ${currentAlpha}, Beta: ${currentBeta}")
 
+                // Maximize or minimize the eval based on the ply's Current Color (BLUE == AI)
                 var bestEval = evaluations[0]
                 for (evaluation in evaluations) {
-                    if (bestEval.evaluation < evaluation.evaluation)
-                        bestEval = evaluation
+                    if (currentColor == PlayerColor.BLUE) {
+                        if (bestEval.evaluation < evaluation.evaluation)
+                            bestEval = evaluation
+                    }
+                    else {
+                        if (bestEval.evaluation > evaluation.evaluation)
+                            bestEval = evaluation
+                    }
                 }
 
                 if (node.originPosition != null && node.cardUsedIndex != null && node.moveUsedIndex != null ) {
-                    return MoveEvaluation(node.originPosition!!, node.cardUsedIndex!!, node.moveUsedIndex!!, bestEval.evaluation, currentAlpha, currentBeta)
+                    return MoveEvaluation(node.originPosition!!, node.cardUsedIndex!!, node.moveUsedIndex!!, bestEval.evaluation, bestEval.alpha, bestEval.beta)
                 }
                 else {
-                    return MoveEvaluation(bestEval.originPosition, bestEval.cardUsedIndex, bestEval.moveUsedIndex, bestEval.evaluation, currentAlpha, currentBeta)
+                    return MoveEvaluation(bestEval.originPosition, bestEval.cardUsedIndex, bestEval.moveUsedIndex, bestEval.evaluation, bestEval.alpha, bestEval.beta)
                 }
             }
             else {
                 // Calculate the Static Board Evaluator
-                return determineSBE(node, currentColor, originalColor, alpha, beta)
+                return determineSBE(node, alpha, beta)
             }
         }
 
@@ -188,9 +197,6 @@ class BoardEvaluator {
 
                         childNode.switchCard(cardIndex, currentColor)
 
-                        Log.d("BOARD", "PieceIndex = ${pieceIndex}, cardUsed = ${cardIndex}, moveUsed = ${moveIndex}")
-                        Board.print(childNode.board)
-
                         // Add the valid move to the childrenNodes list
                         childrenNodes.add(childNode)
                     }
@@ -210,22 +216,94 @@ class BoardEvaluator {
          * @param alpha The alpha value of the Alpha-Beta Pruning algorithm.
          * @param beta The beta value of the Alpha-Beta Pruning algorithm.
          */
-        fun determineSBE(node: OnitamaNode, currentColor: PlayerColor, originalColor: PlayerColor, alpha: Double, beta: Double): MoveEvaluation {
+        fun determineSBE(node: OnitamaNode, alpha: Double, beta: Double): MoveEvaluation {
             var totalEvaluation = 0.0
 
-            val redMaster = node.board.redMaster!!
-            val blueMaster = node.board.blueMaster!!
+            // The more blue pieces are on the board, the better
+            totalEvaluation += node.board.bluePieces.size * 15
 
-            var tempEvaluation = 0.0
-            for (piece in node.board.bluePieces) {
-                tempEvaluation = abs(redMaster.position.x - piece.position.x).toDouble().pow(2) * -1
-                tempEvaluation += abs(redMaster.position.y - piece.position.y).toDouble().pow(2) * -1
+            // The more red pieces are on the board, the worse
+            totalEvaluation -= node.board.redPieces.size * 15
+
+            // The more blue pieces protecting each other, the better
+            for (card in node.blueCards) {
+                for (move in card.possibleMoves) {
+                    for (piece in node.board.bluePieces) {
+                        val newX = piece.position.x + move.x * -1
+                        val newY = piece.position.y + move.y * -1
+
+                        try {
+                            val blockPiece = node.board.getPiece(Coordinate(newX, newY))
+                            if (blockPiece != null) {
+                                if (blockPiece.color == PlayerColor.BLUE) {
+                                    totalEvaluation += 12
+                                }
+                            }
+                        }
+                        catch (e: Exception) {
+                            continue
+                        }
+                    }
+
+                    val blueMaster = node.board.blueMaster
+                    val newX = blueMaster!!.position.x + move.x * -1
+                    val newY = blueMaster.position.y + move.y * -1
+
+                    try {
+                        val blockPiece = node.board.getPiece(Coordinate(newX, newY))
+                        if (blockPiece != null) {
+                            if (blockPiece.color == PlayerColor.BLUE) {
+                                totalEvaluation += 10
+                            }
+                        }
+                    }
+                    catch (e: Exception) {
+                        continue
+                    }
+                }
             }
-            totalEvaluation += tempEvaluation
+
+            // The more red pieces protecting each other, the worse
+            for (card in node.redCards) {
+                for (move in card.possibleMoves) {
+                    for (piece in node.board.redPieces) {
+                        val newX = piece.position.x + move.x
+                        val newY = piece.position.y + move.y
+
+                        try {
+                            val blockPiece = node.board.getPiece(Coordinate(newX, newY))
+                            if (blockPiece != null) {
+                                if (blockPiece.color == PlayerColor.RED) {
+                                    totalEvaluation -= 12
+                                }
+                            }
+                        }
+                        catch (e: Exception) {
+                            continue
+                        }
+                    }
+
+                    val redMaster = node.board.redMaster
+                    val newX = redMaster!!.position.x + move.x
+                    val newY = redMaster!!.position.y + move.y
+
+                    try {
+                        val blockPiece = node.board.getPiece(Coordinate(newX, newY))
+                        if (blockPiece != null) {
+                            if (blockPiece.color == PlayerColor.RED) {
+                                totalEvaluation -= 10
+                            }
+                        }
+                    }
+                    catch (e: Exception) {
+                        continue
+                    }
+                }
+            }
 
             return MoveEvaluation(
                 node.originPosition!!,
-                node.cardUsedIndex!!,
+                node.moveUsedIndex!!,
                 node.moveUsedIndex!!,
                 totalEvaluation,
                 alpha,
@@ -233,28 +311,19 @@ class BoardEvaluator {
             )
         }
 
-        fun checkWinLossCondition(depth: Int, node: OnitamaNode, currentColor: PlayerColor, originalColor: PlayerColor, alpha: Double, beta: Double): MoveEvaluation? {
+        fun checkWinLossCondition(depth: Int, node: OnitamaNode, currentColor: PlayerColor, alpha: Double, beta: Double): MoveEvaluation? {
             var tempEval: MoveEvaluation? = null
 
-            val winEval = if (depth <= 1) Double.POSITIVE_INFINITY else Double.MAX_VALUE - depth * 10
-            val lossEval = if (depth <= 1) Double.NEGATIVE_INFINITY else Double.MIN_VALUE + depth * 10
-
             if (node.board.redMaster == null ||
-                (node.board
-                    .blueMaster
-                    ?.position
-                    ?.x == Board.RED_MASTER_BLOCK.x &&
-                    node.board
-                        .blueMaster
-                        ?.position
-                        ?.y == Board.RED_MASTER_BLOCK.y)) {
+                (node.board.blueMaster?.position?.x == Board.RED_MASTER_BLOCK.x &&
+                        node.board.blueMaster?.position?.y == Board.RED_MASTER_BLOCK.y)) {
                 tempEval = MoveEvaluation(
                     node.originPosition!!,
                     node.cardUsedIndex!!,
                     node.moveUsedIndex!!,
-                    winEval,
-                    if (currentColor == PlayerColor.BLUE) winEval else alpha,
-                    if (currentColor == PlayerColor.BLUE) beta else winEval,
+                    Double.POSITIVE_INFINITY,
+                    alpha,
+                    beta
                 )
             }
             else if (node.board.blueMaster == null ||
@@ -264,9 +333,9 @@ class BoardEvaluator {
                     node.originPosition!!,
                     node.cardUsedIndex!!,
                     node.moveUsedIndex!!,
-                    lossEval,
-                    if (currentColor == PlayerColor.BLUE) lossEval else alpha,
-                    if (currentColor == PlayerColor.BLUE) beta else lossEval,
+                    Double.NEGATIVE_INFINITY,
+                    alpha,
+                    beta,
                 )
             }
 
