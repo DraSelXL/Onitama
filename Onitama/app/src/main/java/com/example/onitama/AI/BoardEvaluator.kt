@@ -225,7 +225,7 @@ class BoardEvaluator {
 
             return MoveEvaluation(
                 node.originPosition!!,
-                node.moveUsedIndex!!,
+                node.cardUsedIndex!!,
                 node.moveUsedIndex!!,
                 totalEvaluation,
                 alpha,
