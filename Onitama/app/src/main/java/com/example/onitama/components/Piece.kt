@@ -1,15 +1,42 @@
 package com.example.onitama.components
 
-data class Piece(
-    var type:String, //pawn or king
-    var img:Int,
-    var color: String
+/**
+ * An object to hold the values of an Onitama piece.
+ *
+ * @constructor Sets the type, image resource id, color, and position of the piece.
+ *
+ * @param type The type of the piece.
+ * @param image The image resource id of the piece.
+ * @param color The color of the piece.
+ * @param position The position of the piece on the board.
+ */
+class Piece(
+    val type: PieceType,
+    val image: Int,
+    val color: PlayerColor,
+    val position: Coordinate
 ) {
-    // Static Variables
-    companion object {
-        var PAWN = "pawn"       // Indicates that the piece is of type "pawn"
-        var MASTER = "master"   // Indicates that the piece is of type "master"
-    }
+    /**
+     * ### A secondary constructor of the Piece object.
+     * Performs a deep copy of the argument Piece object.
+     *
+     * @param oldPiece The piece which is going to be deep copied.
+     */
+    constructor(oldPiece: Piece) : this(oldPiece.type, oldPiece.image, oldPiece.color, Coordinate(oldPiece.position.x, oldPiece.position.y))
 
-    var pos = Coordinate(-1, -1)
+    // Methods
+    /**
+     * Moves this piece to the desired coordinate.
+     *
+     * @param newX The new X axis position of this piece.
+     * @param newY The new Y axis position of this piece.
+     *
+     * @return This piece after being moved.
+     */
+    fun moveTo(newX: Int, newY: Int): Piece {
+        this.position.x = newX
+        this.position.y = newY
+
+        return this
+    }
 }
