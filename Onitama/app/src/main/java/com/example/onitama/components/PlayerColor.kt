@@ -1,15 +1,10 @@
 package com.example.onitama.components
 
 /**
- * A holder class that stores the color of the players.
- * Use the companion object to retrieve the values and indicate what belongs to who.
+ * An enum class that holds the value of the available player color.
+ * Has a color property that represents the string of the color name.
  */
-class PlayerColor {
-    companion object {
-        /** Reperesents the color blue for a player */
-        var BLUE = "blue"
-
-        /** Represents the color red for a player */
-        var RED = "red"
-    }
+enum class PlayerColor(val color: String) {
+    RED("red"),     // Indicates that the player color is red.
+    BLUE("blue")    // Indicates that the player color is blue.
 }

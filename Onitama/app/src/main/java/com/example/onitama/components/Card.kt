@@ -2,9 +2,9 @@ package com.example.onitama.components
 
 //constructor
 data class Card(
-    var name:String,
-    var img:Int,
-    var color:String, // Red or Blue
+    var name: String,
+    var img: Int,
+    var color: PlayerColor, // Red or Blue
     var possibleMoves: ArrayList<Coordinate> = ArrayList(),
 ) {
     // Static Properties
@@ -42,87 +42,87 @@ data class Card(
         var coors = arrayListOf<Coordinate>()
         when (name) {
             TIGER -> {
-                coors.add(Coordinate(-2, 0))
-                coors.add(Coordinate(1, 0))
+                coors.add(Coordinate(0, -2))
+                coors.add(Coordinate(0, 1))
             }
             DRAGON -> {
-                coors.add(Coordinate(-1, -2))
-                coors.add(Coordinate(-1, 2))
-                coors.add(Coordinate(1, -1))
+                coors.add(Coordinate(-2, -1))
+                coors.add(Coordinate(2, -1))
+                coors.add(Coordinate(-1, 1))
                 coors.add(Coordinate(1, 1))
             }
             FROG -> {
                 coors.add(Coordinate(-1, -1))
-                coors.add(Coordinate(0, -2))
+                coors.add(Coordinate(-2, 0))
                 coors.add(Coordinate(1, 1))
             }
             RABBIT -> {
-                coors.add(Coordinate(-1, 1))
-                coors.add(Coordinate(0, 2))
-                coors.add(Coordinate(1, -1))
+                coors.add(Coordinate( 1, -1))
+                coors.add(Coordinate(2, 0))
+                coors.add(Coordinate( -1, 1))
             }
             CRAB -> {
-                coors.add(Coordinate(-1, 0))
-                coors.add(Coordinate(0, -2))
-                coors.add(Coordinate(0, 2))
+                coors.add(Coordinate( 0, -1))
+                coors.add(Coordinate(-2, 0))
+                coors.add(Coordinate( 2, 0))
             }
             ELEPHANT -> {
                 coors.add(Coordinate(-1, -1))
-                coors.add(Coordinate(-1, 1))
-                coors.add(Coordinate(0, -1))
-                coors.add(Coordinate(0, 1))
+                coors.add(Coordinate(1, -1))
+                coors.add(Coordinate(-1, 0))
+                coors.add(Coordinate(1, 0))
             }
             GOOSE -> {
                 coors.add(Coordinate(-1, -1))
-                coors.add(Coordinate(0, -1))
-                coors.add(Coordinate(0, 1))
+                coors.add(Coordinate(-1, 0))
+                coors.add(Coordinate(1, 0))
                 coors.add(Coordinate(1, 1))
             }
             ROOSTER -> {
-                coors.add(Coordinate(-1, 1))
-                coors.add(Coordinate(0, -1))
-                coors.add(Coordinate(0, 1))
                 coors.add(Coordinate(1, -1))
+                coors.add(Coordinate(-1, 0))
+                coors.add(Coordinate(1, 0))
+                coors.add(Coordinate(-1, 1))
             }
             MONKEY -> {
                 coors.add(Coordinate(-1, -1))
-                coors.add(Coordinate(-1, 1))
                 coors.add(Coordinate(1, -1))
+                coors.add(Coordinate(-1, 1))
                 coors.add(Coordinate(1, 1))
             }
             MANTIS -> {
                 coors.add(Coordinate(-1, -1))
-                coors.add(Coordinate(-1, 1))
-                coors.add(Coordinate(1, 0))
+                coors.add(Coordinate( 1, -1))
+                coors.add(Coordinate(0, 1))
             }
             HORSE -> {
-                coors.add(Coordinate(-1, 0))
                 coors.add(Coordinate(0, -1))
-                coors.add(Coordinate(1, 0))
-            }
-            OX -> {
                 coors.add(Coordinate(-1, 0))
                 coors.add(Coordinate(0, 1))
+            }
+            OX -> {
+                coors.add(Coordinate(0, -1))
                 coors.add(Coordinate(1, 0))
+                coors.add(Coordinate(0, 1))
             }
             CRANE -> {
-                coors.add(Coordinate(-1, 0))
-                coors.add(Coordinate(1, -1))
+                coors.add(Coordinate(0, -1))
+                coors.add(Coordinate(-1, 1))
                 coors.add(Coordinate(1, 1))
             }
             BOAR -> {
-                coors.add(Coordinate(-1, 0))
                 coors.add(Coordinate(0, -1))
-                coors.add(Coordinate(0, 1))
+                coors.add(Coordinate(-1, 0))
+                coors.add(Coordinate(1, 0))
             }
             EEL -> {
                 coors.add(Coordinate(-1, -1))
-                coors.add(Coordinate(0, 1))
-                coors.add(Coordinate(1, -1))
+                coors.add(Coordinate(1, 0))
+                coors.add(Coordinate(-1, 1))
             }
             COBRA ->{
-                coors.add(Coordinate(-1, 1))
-                coors.add(Coordinate(0, -1))
+                coors.add(Coordinate(1, -1))
+                coors.add(Coordinate(-1, 0))
                 coors.add(Coordinate(1, 1))
             }
         }

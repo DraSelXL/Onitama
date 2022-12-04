@@ -1,8 +1,6 @@
 package com.example.onitama.components
 
-class Block(
-    //0 for empty
-    var status: Int,
+data class Block(
     var pos: Coordinate,
     var occupier: String = Block.OCCUPY_NONE, // Enemy or Player
     var piece: Piece? = null,
