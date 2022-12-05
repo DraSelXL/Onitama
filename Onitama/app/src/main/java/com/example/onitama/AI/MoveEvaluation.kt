@@ -13,6 +13,7 @@ import com.example.onitama.components.Coordinate
  * @param beta The beta result value of the Alpha-Beta Pruning algorithm.
  */
 data class MoveEvaluation(
+    val depth: Int,
     val originPosition: Coordinate,
     val cardUsedIndex: Int,
     val moveUsedIndex: Int,
