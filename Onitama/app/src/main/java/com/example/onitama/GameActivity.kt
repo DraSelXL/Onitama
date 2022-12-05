@@ -289,6 +289,22 @@ class GameActivity : AppCompatActivity() {
         cleanBlock(oldPos.y, oldPos.x) // Resets the previous piece block position
     }
 
+    suspend fun exitTimer() {
+        val executeTime = System.currentTimeMillis()
+
+        while (true) {
+            val passedTime = System.currentTimeMillis() - executeTime
+
+            if (passedTime > 5000) {
+                break
+            }
+        }
+
+        runOnUiThread {
+            finish()
+        }
+    }
+
     /**
      * Checks the game whether a win condition is achieved every time a move is happening.
      */
@@ -296,13 +312,19 @@ class GameActivity : AppCompatActivity() {
         if (board.redMaster == null) { // Has the red player lost their master?
             Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
-            finish()
+
+            coroutine.launch {
+                exitTimer()
+            }
 //            return
         }
         else if (board.blueMaster == null) { // Has the red player lost their master?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
-            finish()
+
+            coroutine.launch {
+                exitTimer()
+            }
 //            return
         }
 
@@ -310,7 +332,10 @@ class GameActivity : AppCompatActivity() {
             board.getPiece(Coordinate(Board.BLUE_MASTER_BLOCK.x, Board.BLUE_MASTER_BLOCK.y))?.type == PieceType.MASTER) { // Has the blue player temple been occupied?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
-            finish()
+
+            coroutine.launch {
+                exitTimer()
+            }
 //            return
         }
         else if (board.getPiece(Coordinate(Board.RED_MASTER_BLOCK.x, Board.RED_MASTER_BLOCK.y))?.color == PlayerColor.BLUE &&
@@ -318,7 +343,10 @@ class GameActivity : AppCompatActivity() {
             Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
 //            return
-            finish()
+
+            coroutine.launch {
+                exitTimer()
+            }
         }
     }
 

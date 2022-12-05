@@ -109,11 +109,13 @@ class BoardEvaluator {
                 var bestEval = evaluations[0]
                 for (evaluation in evaluations) {
                     if (currentColor == PlayerColor.BLUE) {
-                        if (bestEval.evaluation < evaluation.evaluation || (bestEval.evaluation == evaluation.evaluation && bestEval.depth > evaluation.evaluation))
+                        if (bestEval.evaluation < evaluation.evaluation || (bestEval.evaluation == evaluation.evaluation && bestEval.depth > evaluation.depth))
+                            Log.d("ALPHA-BETA", "MASUK 1")
                             bestEval = evaluation
                     }
                     else {
-                        if (bestEval.evaluation > evaluation.evaluation || (bestEval.evaluation == evaluation.evaluation && bestEval.depth > evaluation.evaluation))
+                        if (bestEval.evaluation > evaluation.evaluation || (bestEval.evaluation == evaluation.evaluation && bestEval.depth > evaluation.depth))
+                            Log.d("ALPHA-BETA", "MASUK 2")
                             bestEval = evaluation
                     }
                 }
