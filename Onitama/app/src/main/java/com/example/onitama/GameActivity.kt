@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import com.example.onitama.AI.BoardEvaluator
 import com.example.onitama.components.*
@@ -31,13 +32,18 @@ class GameActivity : AppCompatActivity() {
 
     private lateinit var ivNext: ImageView              // The Stored Card Image View
 
+    private lateinit var txtTurn:TextView
+
     private lateinit var enemy: Player                  // The Enemy Specific Class (Cards, and Color)
     private lateinit var player: Player                 // The Main Player Specific Identities (Cards, and Color)
+
 
     private var turn = PLAYER_COLOR                     // Indicates whose turn it is currently
     private var selectedCard = -1                       // Holds the current selected index from the owned cards
     private var selectedCoordinate: Coordinate? = null  // Indicates what is the currently selected game board
     private var isSelecting = false                     // The current mode for selecting a piece
+
+
 
     // A list of all available card in the deck
     private var allCards:Array<Card> = arrayOf(
@@ -321,7 +327,15 @@ class GameActivity : AppCompatActivity() {
      * Called whenever a player has made a move.
      */
     fun switchTurn() {
-        turn = if (turn == PLAYER_COLOR) AI_COLOR else PLAYER_COLOR
+//        turn = if (turn == PLAYER_COLOR) AI_COLOR else PLAYER_COLOR
+        if(turn == PLAYER_COLOR){
+            txtTurn.text = "Game Turn: AI"
+            turn = AI_COLOR
+        }
+        else{
+            txtTurn.text = "Game Turn: Player"
+            turn = PLAYER_COLOR
+        }
     }
 
     /**
@@ -370,6 +384,7 @@ class GameActivity : AppCompatActivity() {
         ivPlayer1 = findViewById(R.id.ivPlayer1)
         ivPlayer2 = findViewById(R.id.ivPlayer2)
         ivNext = findViewById(R.id.ivNext)
+        txtTurn = findViewById(R.id.txtTurn)
 
         initNewGame() // Start a new game
 
