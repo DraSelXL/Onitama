@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import com.example.onitama.AI.BoardEvaluator
 import com.example.onitama.components.*
@@ -31,13 +32,18 @@ class GameActivity : AppCompatActivity() {
 
     private lateinit var ivNext: ImageView              // The Stored Card Image View
 
+    private lateinit var txtTurn:TextView
+
     private lateinit var enemy: Player                  // The Enemy Specific Class (Cards, and Color)
     private lateinit var player: Player                 // The Main Player Specific Identities (Cards, and Color)
+
 
     private var turn = PLAYER_COLOR                     // Indicates whose turn it is currently
     private var selectedCard = -1                       // Holds the current selected index from the owned cards
     private var selectedCoordinate: Coordinate? = null  // Indicates what is the currently selected game board
     private var isSelecting = false                     // The current mode for selecting a piece
+
+
 
     // A list of all available card in the deck
     private var allCards:Array<Card> = arrayOf(
@@ -283,6 +289,22 @@ class GameActivity : AppCompatActivity() {
         cleanBlock(oldPos.y, oldPos.x) // Resets the previous piece block position
     }
 
+    suspend fun exitTimer() {
+        val executeTime = System.currentTimeMillis()
+
+        while (true) {
+            val passedTime = System.currentTimeMillis() - executeTime
+
+            if (passedTime > 5000) {
+                break
+            }
+        }
+
+        runOnUiThread {
+            finish()
+        }
+    }
+
     /**
      * Checks the game whether a win condition is achieved every time a move is happening.
      */
@@ -290,25 +312,41 @@ class GameActivity : AppCompatActivity() {
         if (board.redMaster == null) { // Has the red player lost their master?
             Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
-            return
+
+            coroutine.launch {
+                exitTimer()
+            }
+//            return
         }
         else if (board.blueMaster == null) { // Has the red player lost their master?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
-            return
+
+            coroutine.launch {
+                exitTimer()
+            }
+//            return
         }
 
         if (board.getPiece(Coordinate(Board.BLUE_MASTER_BLOCK.x, Board.BLUE_MASTER_BLOCK.y))?.color == PlayerColor.RED &&
             board.getPiece(Coordinate(Board.BLUE_MASTER_BLOCK.x, Board.BLUE_MASTER_BLOCK.y))?.type == PieceType.MASTER) { // Has the blue player temple been occupied?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
-            return
+
+            coroutine.launch {
+                exitTimer()
+            }
+//            return
         }
         else if (board.getPiece(Coordinate(Board.RED_MASTER_BLOCK.x, Board.RED_MASTER_BLOCK.y))?.color == PlayerColor.BLUE &&
             board.getPiece(Coordinate(Board.RED_MASTER_BLOCK.x, Board.RED_MASTER_BLOCK.y))?.type == PieceType.MASTER) { // Has the red player temple been occupied?
             Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
-            return
+//            return
+
+            coroutine.launch {
+                exitTimer()
+            }
         }
     }
 
@@ -317,7 +355,15 @@ class GameActivity : AppCompatActivity() {
      * Called whenever a player has made a move.
      */
     fun switchTurn() {
-        turn = if (turn == PLAYER_COLOR) AI_COLOR else PLAYER_COLOR
+//        turn = if (turn == PLAYER_COLOR) AI_COLOR else PLAYER_COLOR
+        if(turn == PLAYER_COLOR){
+            txtTurn.text = "Game Turn: AI"
+            turn = AI_COLOR
+        }
+        else{
+            txtTurn.text = "Game Turn: Player"
+            turn = PLAYER_COLOR
+        }
     }
 
     /**
@@ -366,6 +412,7 @@ class GameActivity : AppCompatActivity() {
         ivPlayer1 = findViewById(R.id.ivPlayer1)
         ivPlayer2 = findViewById(R.id.ivPlayer2)
         ivNext = findViewById(R.id.ivNext)
+        txtTurn = findViewById(R.id.txtTurn)
 
         initNewGame() // Start a new game
 
