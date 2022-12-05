@@ -238,6 +238,10 @@ class BoardEvaluator {
                                 if (blockPiece.color == PlayerColor.BLUE) {
                                     totalEvaluation += 12
                                 }
+                                // Check if blue piece is attacking a red piece (A red piece in threatened)
+                                else if (blockPiece.color == PlayerColor.RED) {
+                                    totalEvaluation += 8
+                                }
                             }
                         }
                         catch (e: Exception) {
@@ -254,6 +258,10 @@ class BoardEvaluator {
                         if (blockPiece != null) {
                             if (blockPiece.color == PlayerColor.BLUE) {
                                 totalEvaluation += 10
+                            }
+                            // Check if blue piece is attacking a red piece (A red piece in threatened)
+                            else if (blockPiece.color == PlayerColor.RED) {
+                                totalEvaluation += 5
                             }
                         }
                     }
@@ -276,6 +284,10 @@ class BoardEvaluator {
                                 if (blockPiece.color == PlayerColor.RED) {
                                     totalEvaluation -= 12
                                 }
+                                // Check if red piece is attacking a blue piece (A blue piece in danger)
+                                else if (blockPiece.color == PlayerColor.BLUE) {
+                                    totalEvaluation -= 8
+                                }
                             }
                         }
                         catch (e: Exception) {
@@ -292,6 +304,10 @@ class BoardEvaluator {
                         if (blockPiece != null) {
                             if (blockPiece.color == PlayerColor.RED) {
                                 totalEvaluation -= 10
+                            }
+                            // Check if red piece is attacking a blue piece (A blue piece in danger)
+                            else if (blockPiece.color == PlayerColor.BLUE) {
+                                totalEvaluation -= 5
                             }
                         }
                     }
