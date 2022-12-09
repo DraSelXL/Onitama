@@ -40,6 +40,13 @@ class Board(
         }
     }
 
+    // Properties
+    val blocks = Array<Array<Piece?>>(HEIGHT) {
+        Array<Piece?>(WIDTH) {
+            null
+        }
+    }
+
     /**
      * ### A secondary constructor of the Board object.
      * Performs a deep copy of the argument Board object.
@@ -48,13 +55,20 @@ class Board(
      */
     constructor(oldBoard: Board) : this() {
         redMaster = if (oldBoard.redMaster != null) Piece(oldBoard.redMaster!!) else null
+        if (redMaster != null) blocks[redMaster!!.position.y][redMaster!!.position.x] = redMaster
+
         blueMaster = if (oldBoard.blueMaster != null) Piece(oldBoard.blueMaster!!) else null
+        if (blueMaster != null) blocks[blueMaster!!.position.y][blueMaster!!.position.x] = blueMaster
 
-        for (oldRedPiece in oldBoard.redPieces)
+        for (oldRedPiece in oldBoard.redPieces) {
             redPieces.add(Piece(oldRedPiece))
+            blocks[redPieces[redPieces.lastIndex].position.y][redPieces[redPieces.lastIndex].position.x] = redPieces[redPieces.lastIndex]
+        }
 
-        for (oldBluePiece in oldBoard.bluePieces)
+        for (oldBluePiece in oldBoard.bluePieces) {
             bluePieces.add(Piece(oldBluePiece))
+            blocks[bluePieces[bluePieces.lastIndex].position.y][bluePieces[bluePieces.lastIndex].position.x] = bluePieces[bluePieces.lastIndex]
+        }
     }
 
     // Methods
@@ -79,19 +93,33 @@ class Board(
      * Called whenever a new game is about to commence.
      */
     fun refresh() {
+        // Reset the 5x5 block
+        for (row in 0 until HEIGHT) {
+            for (column in 0 until WIDTH) {
+                blocks[row][column] = null
+            }
+        }
+
         // Initialize the master pieces.
         redMaster = Piece(PieceType.MASTER, R.drawable.ic_crown_red, PlayerColor.RED, Coordinate(RED_MASTER_BLOCK.x, RED_MASTER_BLOCK.y))
+        blocks[RED_MASTER_BLOCK.y][RED_MASTER_BLOCK.x] = redMaster
+
         blueMaster = Piece(PieceType.MASTER, R.drawable.ic_crown_blue, PlayerColor.BLUE, Coordinate(BLUE_MASTER_BLOCK.x, BLUE_MASTER_BLOCK.y))
+        blocks[BLUE_MASTER_BLOCK.y][BLUE_MASTER_BLOCK.x] = blueMaster
 
         // Initialize the pawn pieces.
         redPieces.clear()
         bluePieces.clear()
         for (column in 0 until WIDTH) {
-            if (column != RED_MASTER_BLOCK.x)
+            if (column != RED_MASTER_BLOCK.x){
                 redPieces.add(Piece(PieceType.PAWN, R.drawable.ic_pawn_red, PlayerColor.RED, Coordinate(column, RED_MASTER_BLOCK.y)))
+                blocks[RED_MASTER_BLOCK.y][column] = redPieces[redPieces.lastIndex]
+            }
 
-            if (column != BLUE_MASTER_BLOCK.x)
+            if (column != BLUE_MASTER_BLOCK.x) {
                 bluePieces.add(Piece(PieceType.PAWN, R.drawable.ic_pawn_blue, PlayerColor.BLUE, Coordinate(column, BLUE_MASTER_BLOCK.y)))
+                blocks[BLUE_MASTER_BLOCK.y][column] = bluePieces[bluePieces.lastIndex]
+            }
         }
     }
 
@@ -106,48 +134,53 @@ class Board(
         // Check whether the given coordinate is valid
         checkCoordinate(coordinate)
 
-        // Check if the master piece is there.
-        if (redMaster
-                ?.position
-                ?.x == coordinate.x &&
-            redMaster
-                ?.position
-                ?.y == coordinate.y)
-            return redMaster
+        var foundPiece: Piece? = blocks[coordinate.y][coordinate.x]
 
-        else if (blueMaster?.position?.x == coordinate.x && blueMaster?.position?.y == coordinate.y)
-            return blueMaster
-
-        // Search between red pawn pieces
-        var foundPiece: Piece? = null
-        var i = 0
-        while(i < redPieces.size) {
-            var tempPiece = redPieces[i]
-            if (tempPiece.position.x == coordinate.x && tempPiece.position.y == coordinate.y) {
-                foundPiece = tempPiece
-                i = WIDTH // Exit out of the loop
-            }
-
-            i++
-        }
-
-        // Returns the found piece
-        if (foundPiece != null) return foundPiece
-
-        // Continue search in blue pawn pieces
-        i = 0
-        while(i < bluePieces.size) {
-            var tempPiece = bluePieces[i]
-            if (tempPiece.position.x == coordinate.x && tempPiece.position.y == coordinate.y) {
-                foundPiece = tempPiece
-                i = WIDTH // Exit out of the loop
-            }
-
-            i++
-        }
-
-        // Return result whether found or not
         return foundPiece
+
+
+//        // Check if the master piece is there.
+//        if (redMaster
+//                ?.position
+//                ?.x == coordinate.x &&
+//            redMaster
+//                ?.position
+//                ?.y == coordinate.y)
+//            return redMaster
+//
+//        else if (blueMaster?.position?.x == coordinate.x && blueMaster?.position?.y == coordinate.y)
+//            return blueMaster
+//
+//        // Search between red pawn pieces
+//        var foundPiece: Piece? = null
+//        var i = 0
+//        while(i < redPieces.size) {
+//            var tempPiece = redPieces[i]
+//            if (tempPiece.position.x == coordinate.x && tempPiece.position.y == coordinate.y) {
+//                foundPiece = tempPiece
+//                i = WIDTH // Exit out of the loop
+//            }
+//
+//            i++
+//        }
+//
+//        // Returns the found piece
+//        if (foundPiece != null) return foundPiece
+//
+//        // Continue search in blue pawn pieces
+//        i = 0
+//        while(i < bluePieces.size) {
+//            var tempPiece = bluePieces[i]
+//            if (tempPiece.position.x == coordinate.x && tempPiece.position.y == coordinate.y) {
+//                foundPiece = tempPiece
+//                i = WIDTH // Exit out of the loop
+//            }
+//
+//            i++
+//        }
+//
+//        // Return result whether found or not
+//        return foundPiece
     }
 
     /**
@@ -188,6 +221,37 @@ class Board(
         // Move the desired piece to the new coordinate
         oldPiece.moveTo(newPosition.x, newPosition.y)
 
+        // Remove from the blocks
+        blocks[newPosition.y][newPosition.x] = blocks[oldPosition.y][oldPosition.x]
+        blocks[oldPosition.y][oldPosition.x] = null
+
         return capturedPiece
+
+//        // Get the piece in the specified coordinate
+//        var oldPiece: Piece = getPiece(oldPosition) ?: throw Exception("The coordinate does not have a piece!")
+//        var destinationPiece: Piece? = getPiece(newPosition)
+//
+//        // Throws an exception if the move captures a friendly piece
+//        if (destinationPiece?.color == oldPiece.color) throw Exception("Attempting to capture a friendly piece!")
+//
+//        // Deep copy the destination piece before moving any piece
+//        var capturedPiece = if (destinationPiece != null) Piece(destinationPiece) else null
+//
+//        // Remove the captured piece from the list if there is any
+//        if (destinationPiece?.color == PlayerColor.RED)
+//            if (destinationPiece != redMaster) {
+//                redPieces.remove(destinationPiece)
+//            }
+//            else redMaster = null
+//        else if (destinationPiece?.color == PlayerColor.BLUE)
+//            if (destinationPiece != blueMaster) {
+//                bluePieces.remove(destinationPiece)
+//            }
+//            else blueMaster = null
+//
+//        // Move the desired piece to the new coordinate
+//        oldPiece.moveTo(newPosition.x, newPosition.y)
+//
+//        return capturedPiece
     }
 }
