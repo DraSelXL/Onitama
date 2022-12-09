@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import com.example.onitama.AI.BoardEvaluator
 import com.example.onitama.components.*
@@ -33,6 +34,8 @@ class GameActivity : AppCompatActivity() {
 
     private lateinit var enemy: Player                  // The Enemy Specific Class (Cards, and Color)
     private lateinit var player: Player                 // The Main Player Specific Identities (Cards, and Color)
+
+    private lateinit var txtTurn:TextView
 
     private var turn = PLAYER_COLOR                     // Indicates whose turn it is currently
     private var selectedCard = -1                       // Holds the current selected index from the owned cards
@@ -290,11 +293,21 @@ class GameActivity : AppCompatActivity() {
         if (board.redMaster == null) { // Has the red player lost their master?
             Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
+
+            coroutine.launch {
+                exitTimer()
+            }
+
             return
         }
         else if (board.blueMaster == null) { // Has the red player lost their master?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
+
+            coroutine.launch {
+                exitTimer()
+            }
+
             return
         }
 
@@ -302,13 +315,40 @@ class GameActivity : AppCompatActivity() {
             board.getPiece(Coordinate(Board.BLUE_MASTER_BLOCK.x, Board.BLUE_MASTER_BLOCK.y))?.type == PieceType.MASTER) { // Has the blue player temple been occupied?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
             gameStatus = false
+
+            coroutine.launch {
+                exitTimer()
+            }
+
             return
         }
         else if (board.getPiece(Coordinate(Board.RED_MASTER_BLOCK.x, Board.RED_MASTER_BLOCK.y))?.color == PlayerColor.BLUE &&
             board.getPiece(Coordinate(Board.RED_MASTER_BLOCK.x, Board.RED_MASTER_BLOCK.y))?.type == PieceType.MASTER) { // Has the red player temple been occupied?
             Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
+
+            coroutine.launch {
+                exitTimer()
+            }
+
             return
+        }
+    }
+
+
+    suspend fun exitTimer() {
+        val executeTime = System.currentTimeMillis()
+
+        while (true) {
+            val passedTime = System.currentTimeMillis() - executeTime
+
+            if (passedTime > 3000) {
+                break
+            }
+        }
+
+        runOnUiThread {
+            finish()
         }
     }
 
@@ -318,6 +358,13 @@ class GameActivity : AppCompatActivity() {
      */
     fun switchTurn() {
         turn = if (turn == PLAYER_COLOR) AI_COLOR else PLAYER_COLOR
+
+        if (turn == AI_COLOR) {
+            txtTurn.text = "Game Turn: AI"
+        }
+        else if (turn == PLAYER_COLOR) {
+            txtTurn.text = "Game Turn: PLAYER"
+        }
     }
 
     /**
@@ -366,6 +413,7 @@ class GameActivity : AppCompatActivity() {
         ivPlayer1 = findViewById(R.id.ivPlayer1)
         ivPlayer2 = findViewById(R.id.ivPlayer2)
         ivNext = findViewById(R.id.ivNext)
+        txtTurn = findViewById(R.id.txtTurn)
 
         initNewGame() // Start a new game
 
@@ -439,6 +487,7 @@ class GameActivity : AppCompatActivity() {
 
         // If the first turn is the AI turn, move a piece
         if (turn == AI_COLOR) {
+            txtTurn.text = "Game Turn: AI"
             coroutine.launch {
                 moveAI()
             }

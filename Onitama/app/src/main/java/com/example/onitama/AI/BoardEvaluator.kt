@@ -42,7 +42,6 @@ class BoardEvaluator {
          * @param depth The depth the recursion is currently on.
          * @param node The node containing the current state of the game in the AI.
          * @param currentColor The color of the player stating whose turn to move in this depth.
-         * @param originalColor The color of the player stating who first called the `evaluate()` function.
          * @param alpha The alpha value of the node to determine pruning, must be less than `beta`, otherwise prune.
          * @param beta The beta value of the node to determine pruning, must be more than `alpha`, otherwise prune.
          *
@@ -80,7 +79,7 @@ class BoardEvaluator {
                         evaluations.add(moveEvaluation)
 
                         if (currentAlpha >= currentBeta) {
-                            Log.d("ALPHA-BETA", "Maximizing: PRUNE")
+//                            Log.d("ALPHA-BETA", "Maximizing: PRUNE")
                             break
                         }
                     }
@@ -98,36 +97,36 @@ class BoardEvaluator {
                         evaluations.add(moveEvaluation)
 
                         if (currentAlpha >= currentBeta) {
-                            Log.d("ALPHA-BETA", "Minimizing: PRUNE")
+//                            Log.d("ALPHA-BETA", "Minimizing: PRUNE")
                             break
                         }
                     }
                 }
-                Log.d("ALPHA-BETA", "Alpha: ${currentAlpha}, Beta: ${currentBeta}")
+//                Log.d("ALPHA-BETA", "Alpha: ${currentAlpha}, Beta: ${currentBeta}")
 
                 // Maximize or minimize the eval based on the ply's Current Color (BLUE == AI)
                 var bestEval = evaluations[0]
                 for (evaluation in evaluations) {
                     if (currentColor == PlayerColor.BLUE) {
-                        if (bestEval.evaluation < evaluation.evaluation)
+                        if (bestEval.evaluation < evaluation.evaluation || (bestEval.evaluation <= evaluation.evaluation && bestEval.depth > evaluation.depth))
                             bestEval = evaluation
                     }
                     else {
-                        if (bestEval.evaluation > evaluation.evaluation)
+                        if (bestEval.evaluation > evaluation.evaluation || (bestEval.evaluation >= evaluation.evaluation && bestEval.depth < evaluation.depth))
                             bestEval = evaluation
                     }
                 }
 
                 if (node.originPosition != null && node.cardUsedIndex != null && node.moveUsedIndex != null ) {
-                    return MoveEvaluation(node.originPosition!!, node.cardUsedIndex!!, node.moveUsedIndex!!, bestEval.evaluation, bestEval.alpha, bestEval.beta)
+                    return MoveEvaluation(depth, node.originPosition!!, node.cardUsedIndex!!, node.moveUsedIndex!!, bestEval.evaluation, bestEval.alpha, bestEval.beta)
                 }
                 else {
-                    return MoveEvaluation(bestEval.originPosition, bestEval.cardUsedIndex, bestEval.moveUsedIndex, bestEval.evaluation, bestEval.alpha, bestEval.beta)
+                    return MoveEvaluation(depth, bestEval.originPosition, bestEval.cardUsedIndex, bestEval.moveUsedIndex, bestEval.evaluation, bestEval.alpha, bestEval.beta)
                 }
             }
             else {
                 // Calculate the Static Board Evaluator
-                return determineSBE(node, alpha, beta)
+                return determineSBE(depth, node, alpha, beta)
             }
         }
 
@@ -216,7 +215,7 @@ class BoardEvaluator {
          * @param alpha The alpha value of the Alpha-Beta Pruning algorithm.
          * @param beta The beta value of the Alpha-Beta Pruning algorithm.
          */
-        fun determineSBE(node: OnitamaNode, alpha: Double, beta: Double): MoveEvaluation {
+        fun determineSBE(depth: Int, node: OnitamaNode, alpha: Double, beta: Double): MoveEvaluation {
             var totalEvaluation = 0.0
 
             // The more blue pieces are on the board, the better
@@ -302,6 +301,7 @@ class BoardEvaluator {
             }
 
             return MoveEvaluation(
+                depth,
                 node.originPosition!!,
                 node.moveUsedIndex!!,
                 node.moveUsedIndex!!,
@@ -318,6 +318,7 @@ class BoardEvaluator {
                 (node.board.blueMaster?.position?.x == Board.RED_MASTER_BLOCK.x &&
                         node.board.blueMaster?.position?.y == Board.RED_MASTER_BLOCK.y)) {
                 tempEval = MoveEvaluation(
+                    depth,
                     node.originPosition!!,
                     node.cardUsedIndex!!,
                     node.moveUsedIndex!!,
@@ -330,6 +331,7 @@ class BoardEvaluator {
                 (node.board.redMaster?.position?.x == Board.BLUE_MASTER_BLOCK.x &&
                         node.board.redMaster?.position?.y == Board.BLUE_MASTER_BLOCK.y)) {
                 tempEval = MoveEvaluation(
+                    depth,
                     node.originPosition!!,
                     node.cardUsedIndex!!,
                     node.moveUsedIndex!!,
