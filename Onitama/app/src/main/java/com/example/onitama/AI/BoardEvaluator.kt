@@ -219,10 +219,20 @@ class BoardEvaluator {
             var totalEvaluation = 0.0
 
             // The more blue pieces are on the board, the better
-            totalEvaluation += node.board.bluePieces.size * 15
+            totalEvaluation += node.board.bluePieces.size * 30
 
             // The more red pieces are on the board, the worse
-            totalEvaluation -= node.board.redPieces.size * 15
+            totalEvaluation -= node.board.redPieces.size * 30
+
+            // The closer blue master to the red temple, the better
+            var tempEval = ((Board.WIDTH - 1) - abs(node.board.blueMaster!!.position.x - Board.RED_MASTER_BLOCK.x)) * 2
+            tempEval += ((Board.HEIGHT - 1) - abs(node.board.blueMaster!!.position.y - Board.RED_MASTER_BLOCK.y)) * 2
+            totalEvaluation += tempEval
+
+            // The closer red master to the blue temple, the worse
+            tempEval = ((Board.WIDTH - 1) - abs(node.board.redMaster!!.position.x - Board.BLUE_MASTER_BLOCK.x)) * 2
+            tempEval += ((Board.HEIGHT - 1) - abs(node.board.redMaster!!.position.y - Board.BLUE_MASTER_BLOCK.y)) * 2
+            totalEvaluation -= tempEval
 
             // The more blue pieces protecting each other, the better
             for (card in node.blueCards) {
@@ -235,13 +245,20 @@ class BoardEvaluator {
                             val blockPiece = node.board.getPiece(Coordinate(newX, newY))
                             if (blockPiece != null) {
                                 if (blockPiece.color == PlayerColor.BLUE) {
-                                    totalEvaluation += 12
+                                    totalEvaluation += 17
                                 }
                                 // Check if blue piece is attacking a red piece (A red piece in threatened)
                                 else if (blockPiece.color == PlayerColor.RED) {
-                                    totalEvaluation += 8
+                                    totalEvaluation += 12
                                 }
                             }
+                            else {
+                                totalEvaluation += 4
+                            }
+
+                            tempEval = (Board.WIDTH - 1) - abs(newX - node.board.redMaster!!.position.x)
+                            tempEval += (Board.HEIGHT - 1) - abs(newY - node.board.redMaster!!.position.y)
+                            totalEvaluation += tempEval
                         }
                         catch (e: Exception) {
                             continue
@@ -256,13 +273,20 @@ class BoardEvaluator {
                         val blockPiece = node.board.getPiece(Coordinate(newX, newY))
                         if (blockPiece != null) {
                             if (blockPiece.color == PlayerColor.BLUE) {
-                                totalEvaluation += 10
+                                totalEvaluation += 12
                             }
                             // Check if blue piece is attacking a red piece (A red piece in threatened)
                             else if (blockPiece.color == PlayerColor.RED) {
-                                totalEvaluation += 5
+                                totalEvaluation += 8
                             }
                         }
+                        else {
+                            totalEvaluation += 4
+                        }
+
+                        tempEval = (Board.WIDTH - 1) - abs(newX - node.board.redMaster!!.position.x)
+                        tempEval += (Board.HEIGHT - 1) - abs(newY - node.board.redMaster!!.position.y)
+                        totalEvaluation += tempEval
                     }
                     catch (e: Exception) {
                         continue
@@ -281,13 +305,20 @@ class BoardEvaluator {
                             val blockPiece = node.board.getPiece(Coordinate(newX, newY))
                             if (blockPiece != null) {
                                 if (blockPiece.color == PlayerColor.RED) {
-                                    totalEvaluation -= 12
+                                    totalEvaluation -= 17
                                 }
                                 // Check if red piece is attacking a blue piece (A blue piece in danger)
                                 else if (blockPiece.color == PlayerColor.BLUE) {
-                                    totalEvaluation -= 8
+                                    totalEvaluation -= 12
                                 }
                             }
+                            else {
+                                totalEvaluation -= 4
+                            }
+
+                            tempEval = (Board.WIDTH - 1) - abs(newX - node.board.blueMaster!!.position.x)
+                            tempEval += (Board.HEIGHT - 1) - abs(newY - node.board.blueMaster!!.position.y)
+                            totalEvaluation -= tempEval
                         }
                         catch (e: Exception) {
                             continue
@@ -296,19 +327,26 @@ class BoardEvaluator {
 
                     val redMaster = node.board.redMaster
                     val newX = redMaster!!.position.x + move.x
-                    val newY = redMaster!!.position.y + move.y
+                    val newY = redMaster.position.y + move.y
 
                     try {
                         val blockPiece = node.board.getPiece(Coordinate(newX, newY))
                         if (blockPiece != null) {
                             if (blockPiece.color == PlayerColor.RED) {
-                                totalEvaluation -= 10
+                                totalEvaluation -= 12
                             }
                             // Check if red piece is attacking a blue piece (A blue piece in danger)
                             else if (blockPiece.color == PlayerColor.BLUE) {
-                                totalEvaluation -= 5
+                                totalEvaluation -= 8
                             }
                         }
+                        else {
+                            totalEvaluation -= 4
+                        }
+
+                        tempEval = (Board.WIDTH - 1) - abs(newX - node.board.blueMaster!!.position.x)
+                        tempEval += (Board.HEIGHT - 1) - abs(newY - node.board.blueMaster!!.position.y)
+                        totalEvaluation -= tempEval
                     }
                     catch (e: Exception) {
                         continue
