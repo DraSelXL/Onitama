@@ -37,7 +37,6 @@ class GameActivity : AppCompatActivity() {
     private lateinit var enemy: Player                  // The Enemy Specific Class (Cards, and Color)
     private lateinit var player: Player                 // The Main Player Specific Identities (Cards, and Color)
 
-
     private var turn = PLAYER_COLOR                     // Indicates whose turn it is currently
     private var selectedCard = -1                       // Holds the current selected index from the owned cards
     private var selectedCoordinate: Coordinate? = null  // Indicates what is the currently selected game board
@@ -316,7 +315,7 @@ class GameActivity : AppCompatActivity() {
             coroutine.launch {
                 exitTimer()
             }
-//            return
+            return
         }
         else if (board.blueMaster == null) { // Has the red player lost their master?
             Toast.makeText(this, "Player win!", Toast.LENGTH_LONG).show()
@@ -325,7 +324,7 @@ class GameActivity : AppCompatActivity() {
             coroutine.launch {
                 exitTimer()
             }
-//            return
+            return
         }
 
         if (board.getPiece(Coordinate(Board.BLUE_MASTER_BLOCK.x, Board.BLUE_MASTER_BLOCK.y))?.color == PlayerColor.RED &&
@@ -336,17 +335,17 @@ class GameActivity : AppCompatActivity() {
             coroutine.launch {
                 exitTimer()
             }
-//            return
+            return
         }
         else if (board.getPiece(Coordinate(Board.RED_MASTER_BLOCK.x, Board.RED_MASTER_BLOCK.y))?.color == PlayerColor.BLUE &&
             board.getPiece(Coordinate(Board.RED_MASTER_BLOCK.x, Board.RED_MASTER_BLOCK.y))?.type == PieceType.MASTER) { // Has the red player temple been occupied?
             Toast.makeText(this, "AI win!", Toast.LENGTH_LONG).show()
             gameStatus = false
-//            return
 
             coroutine.launch {
                 exitTimer()
             }
+            return
         }
     }
 
@@ -486,6 +485,7 @@ class GameActivity : AppCompatActivity() {
 
         // If the first turn is the AI turn, move a piece
         if (turn == AI_COLOR) {
+            txtTurn.text = "Game Turn: AI"
             coroutine.launch {
                 moveAI()
             }

@@ -16,8 +16,8 @@
         android:fontFamily="serif"
         android:gravity="center"
         android:text="Game Turn: Player"
-        android:textColor="#6E4A16"
-        android:textSize="16sp"
+        android:textColor="#684D26"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
     <LinearLayout

@@ -42,7 +42,6 @@ class BoardEvaluator {
          * @param depth The depth the recursion is currently on.
          * @param node The node containing the current state of the game in the AI.
          * @param currentColor The color of the player stating whose turn to move in this depth.
-         * @param originalColor The color of the player stating who first called the `evaluate()` function.
          * @param alpha The alpha value of the node to determine pruning, must be less than `beta`, otherwise prune.
          * @param beta The beta value of the node to determine pruning, must be more than `alpha`, otherwise prune.
          *
@@ -80,7 +79,7 @@ class BoardEvaluator {
                         evaluations.add(moveEvaluation)
 
                         if (currentAlpha >= currentBeta) {
-                            Log.d("ALPHA-BETA", "Maximizing: PRUNE")
+//                            Log.d("ALPHA-BETA", "Maximizing: PRUNE")
                             break
                         }
                     }
@@ -98,25 +97,22 @@ class BoardEvaluator {
                         evaluations.add(moveEvaluation)
 
                         if (currentAlpha >= currentBeta) {
-                            Log.d("ALPHA-BETA", "Minimizing: PRUNE")
+//                            Log.d("ALPHA-BETA", "Minimizing: PRUNE")
                             break
                         }
                     }
                 }
-                Log.d("ALPHA-BETA", "Alpha: ${currentAlpha}, Beta: ${currentBeta}")
+//                Log.d("ALPHA-BETA", "Alpha: ${currentAlpha}, Beta: ${currentBeta}")
 
                 // Maximize or minimize the eval based on the ply's Current Color (BLUE == AI)
                 var bestEval = evaluations[0]
                 for (evaluation in evaluations) {
                     if (currentColor == PlayerColor.BLUE) {
-                        if (bestEval.evaluation < evaluation.evaluation)
-                            Log.d("INFO-EVAL",bestEval.depth.toString()+" "+evaluation.depth.toString())
+                        if (bestEval.evaluation < evaluation.evaluation || (bestEval.evaluation <= evaluation.evaluation && bestEval.depth > evaluation.depth))
                             bestEval = evaluation
                     }
                     else {
-                        if (bestEval.evaluation > evaluation.evaluation)
-                            Log.d("INFO-EVAL",bestEval.depth.toString()+" "+evaluation.depth.toString())
-                            Log.d("ALPHA-BETA", "MASUK 2")
+                        if (bestEval.evaluation > evaluation.evaluation || (bestEval.evaluation >= evaluation.evaluation && bestEval.depth < evaluation.depth))
                             bestEval = evaluation
                     }
                 }
